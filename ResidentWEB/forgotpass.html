@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forgot Password - BarangayEase</title>
+<link rel="stylesheet" href="webcss/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="form-card">
+        <div class="logo-section">
+            <h1>Muntinlupa City BarangayEase</h1>
+            <p>Reset Password Portal</p>
+        </div>
+
+        <!-- Dynamic feedback message container -->
+        <div id="forgotMessage"></div>
+
+        <form id="forgotPasswordForm">
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <!-- Security PIN with Show/Hide Toggle and Numbers-Only Filter -->
+            <div class="input-group">
+                <label>Security PIN</label>
+                <div class="password-wrapper">
+                    <input type="password" id="securityPin" placeholder="Enter your 6-digit PIN" maxlength="6" required>
+                    <i class="fa-solid fa-eye toggle-password" data-target="securityPin"></i>
+                </div>
+            </div>
+
+            <!-- New Password with Show/Hide Toggle -->
+            <div class="input-group">
+                <label>New Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="newPassword" placeholder="At least 8 characters" required>
+                    <i class="fa-solid fa-eye toggle-password" data-target="newPassword"></i>
+                </div>
+            </div>
+
+            <!-- Confirm New Password with Show/Hide Toggle -->
+            <div class="input-group">
+                <label>Confirm New Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="confirmPassword" placeholder="Repeat new password" required>
+                    <i class="fa-solid fa-eye toggle-password" data-target="confirmPassword"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register auth-action-btn">
+                Reset Password
+            </button>
+        </form>
+
+        <div class="links">
+            <a href="login.html">Back to Login</a>
+        </div>
+    </div>
+</div>
+
+<script src="webjs/api-config.js"></script>
+<script src="webjs/forgotpass.js"></script>
+</body>
+</html>

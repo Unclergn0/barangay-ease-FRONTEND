@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BarangayEase | Admin Dashboard</title>
+  <link rel="stylesheet" href="webAdmincss/brgyAdmin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+<body>
+<div class="dashboard-container">
+  <header class="topbar">
+    <div class="topbar-left"><img id="barangayLogo" src="" alt="Barangay Logo" class="topbar-logo"><div class="topbar-brand-info"><span class="topbar-brgy-name" id="barangayName">Loading...</span><span class="topbar-portal-type">Admin Portal (Muntinlupa City)</span></div></div>
+    <div class="topbar-right"><div class="notification-wrapper"><button class="notification-btn" onclick="toggleNotifications()" aria-label="Notifications" title="Notifications"><i class="fas fa-bell"></i><span id="notifBadge" class="notif-badge hidden">0</span></button><div id="notificationPanel" class="notification-panel hidden" role="dialog" aria-label="Notifications"><div class="notification-header"><h4>Notifications</h4><span><span class="mark-all-read" onclick="markAllNotificationsRead()">Mark all as read</span> &nbsp;|&nbsp; <span class="mark-all-read" onclick="toggleNotifications(false)">Close</span></span></div><div id="notificationList" class="notification-list"></div></div></div><div class="topbar-profile-wrapper"><div class="topbar-profile" onclick="toggleProfileDropdown()"><img src="webAdminlogo/noproficon.png" alt="Avatar" class="topbar-avatar"><span id="adminName">Administrator</span><i class="fas fa-chevron-down"></i></div><div id="profileDropdown" class="profile-dropdown hidden"><div class="dropdown-item" onclick="showSection('profile-section',this)"><i class="fas fa-user"></i> My Profile</div><div class="dropdown-item logout-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div></div></div></div>
+  </header>
+  <div class="main-wrapper">
+    <aside class="sidebar"><ul class="sidebar-menu">
+      <li class="menu-category">Main</li>
+      <li class="active" onclick="showSection('dashboard',this)"><i class="fas fa-home"></i> Dashboard</li>
+      <li onclick="showSection('residents',this)"><i class="fas fa-users"></i> Residents</li>
+      <li onclick="showSection('requests',this)"><i class="fas fa-file-alt"></i> Document Requests</li>
+      <li onclick="showSection('complaints',this)"><i class="fas fa-exclamation-circle"></i> Complaints</li>
+      <li onclick="showSection('ai-complaints',this)"><i class="fas fa-triangle-exclamation"></i> AI Complaints</li>
+      <li onclick="showSection('analytics-section',this)"><i class="fas fa-chart-bar"></i> Analytics</li>
+      <li onclick="showSection('reports-section',this)"><i class="fas fa-file-lines"></i> Reports</li>
+      <li class="menu-category menu-divider">Account</li>
+      <li onclick="showSection('profile-section',this)"><i class="fas fa-user"></i> My Profile</li>
+      <li onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
+    </ul></aside>
+    <main class="main-content">
+      <section id="dashboard" class="content-section"><h2>Dashboard Overview</h2><p class="section-note">Barangay management summary</p>
+        <div class="cards"><div class="card"><h4>Total Residents</h4><h1 id="dashTotalResidents">0</h1></div><div class="card"><h4>Pending Requests</h4><h1 id="dashPendingRequests">0</h1></div><div class="card"><h4>Total Complaints</h4><h1 id="dashTotalComplaints">0</h1></div><div class="card"><h4>Critical AI Complaints</h4><h1 id="dashCriticalComplaints">0</h1></div></div>
+        <div class="welcome-card"><h2>Welcome to BarangayEase Admin Portal</h2><p>Manage residents, document requests, and complaints for your assigned barangay.</p><button class="admin-action" onclick="refreshCurrentData()"><i class="fas fa-sync"></i> Refresh Dashboard</button></div>
+      </section>
+      <section id="residents" class="content-section hidden"><h2>Resident Management</h2><p class="section-note">Residents registered under your assigned barangay.</p><div class="table-container"><table id="residentsTable"><tr><th>First Name</th><th>Last Name</th><th>Mobile Number</th><th>Address</th><th>Barangay</th><th>Email</th></tr></table></div></section>
+      <section id="requests" class="content-section hidden"><h2>Document Requests</h2><p class="section-note">Review and update document requests submitted by residents of your barangay.</p><div class="table-container"><table id="requestsTable"></table></div></section>
+      <section id="complaints" class="content-section hidden"><h2>Resident Complaints</h2><p class="section-note">Mild and Immediate complaints are handled here.</p><div class="table-container"><table id="complaintsTable"></table></div></section>
+      <section id="ai-complaints" class="content-section hidden"><h2>AI Complaints (Critical Cases Only)</h2><p class="section-note">Only complaints classified as <strong>Critical</strong> appear here. Follow your barangay's emergency and escalation procedures.</p><div class="table-container"><table id="aiComplaintsTable"></table></div></section>
+      <section id="analytics-section" class="content-section hidden">
+        <h2>Barangay Analytics</h2><p class="section-note">Live overview of residents, service requests, and complaints for your assigned barangay.</p>
+        <div class="summary-grid">
+          <div class="summary-item">Total Residents<strong id="analyticsResidents">0</strong></div>
+          <div class="summary-item">Service Requests<strong id="analyticsRequests">0</strong></div>
+          <div class="summary-item">Complaints<strong id="analyticsComplaints">0</strong></div>
+          <div class="summary-item">Pending Requests<strong id="analyticsPending">0</strong></div>
+          <div class="summary-item">Resolved Complaints<strong id="analyticsResolved">0</strong></div>
+          <div class="summary-item">Critical Complaints<strong id="analyticsCritical">0</strong></div>
+        </div>
+        <div class="report-grid">
+          <article class="report-card"><h3>Service Request Status</h3><div id="analyticsRequestChart" class="bar-chart"></div></article>
+          <article class="report-card"><h3>Complaint Classification</h3><div id="analyticsComplaintChart" class="bar-chart"></div></article>
+        </div>
+      </section>
+      <section id="reports-section" class="content-section hidden">
+        <h2>Reports</h2><p class="section-note">Generate and export an analytics report using records belonging to Barangay <strong id="reportBarangayName">your barangay</strong>.</p>
+        <div class="report-toolbar">
+          <label>From <input type="date" id="reportDateFrom"></label>
+          <label>To <input type="date" id="reportDateTo"></label>
+          <label>Report type <select id="reportType"><option value="all">All records</option><option value="requests">Service requests</option><option value="complaints">Complaints</option></select></label>
+          <button class="admin-action" type="button" onclick="applyReportFilters()"><i class="fas fa-filter"></i> Apply Filters</button>
+          <button class="admin-action" type="button" onclick="resetReportFilters()">Reset</button>
+          <button class="admin-action approve" type="button" onclick="exportAnalyticsReport()"><i class="fas fa-file-csv"></i> Export CSV</button>
+          <button class="admin-action" type="button" onclick="printAnalyticsReport()"><i class="fas fa-print"></i> Print Report</button>
+        </div>
+        <p id="reportsSummary" class="report-summary" aria-live="polite">Report summary will appear after data loads.</p>
+        <div class="summary-grid report-kpis">
+          <div class="summary-item">Requests<strong id="reportRequestTotal">0</strong></div>
+          <div class="summary-item">Pending<strong id="reportPendingTotal">0</strong></div>
+          <div class="summary-item">Approved<strong id="reportApprovedTotal">0</strong></div>
+          <div class="summary-item">Completed<strong id="reportCompletedTotal">0</strong></div>
+          <div class="summary-item">Complaints<strong id="reportComplaintTotal">0</strong></div>
+          <div class="summary-item">Resolved<strong id="reportResolvedTotal">0</strong></div>
+          <div class="summary-item">Critical<strong id="reportCriticalTotal">0</strong></div>
+        </div>
+        <div class="report-grid">
+          <article class="report-card"><h3>Service Requests by Status</h3><div id="reportRequestChart" class="bar-chart"></div></article>
+          <article class="report-card"><h3>Complaints by Classification</h3><div id="reportComplaintChart" class="bar-chart"></div></article>
+          <article class="report-card"><h3>Most Requested Services</h3><div id="reportServiceChart" class="bar-chart"></div></article>
+          <article class="report-card"><h3>Monthly Activity</h3><div id="reportMonthlyChart" class="bar-chart"></div></article>
+        </div>
+        <div class="table-container report-table-wrap"><h3>Filtered Service Requests</h3><table id="reportRequestsTable"></table></div>
+        <div class="table-container report-table-wrap"><h3>Filtered Complaints</h3><table id="reportComplaintsTable"></table></div>
+        <p class="section-note">The report uses the records returned by the authenticated barangay-scoped APIs. It does not combine data from other barangays.</p>
+      </section>
+      <section id="profile-section" class="content-section hidden"><h2>Admin Profile Details</h2><div class="welcome-card"><p><strong>Full Name:</strong> <span id="profileName">--</span></p><br><p><strong>Email:</strong> <span id="profileEmail">--</span></p><br><p><strong>Barangay / Role:</strong> <span id="profileRole">--</span></p></div></section>
+    </main>
+  </div>
+</div>
+<script src="webAdminjs/api-config.js"></script>
+<script src="webAdminjs/brgyAdmin.js"></script>
+</body></html>

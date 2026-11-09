@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BarangayEase - Admin Registration</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="webAdmincss/brgyAdmin.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+
+<body>
+
+    <div class="auth-container">
+
+        <div class="auth-card">
+
+            <!-- HEADER -->
+            <div class="auth-logo">
+                <h1>Muntinlupa City BarangayEase</h1>
+                <p>Barangay Administrator Registration Portal</p>
+            </div>
+
+            <!-- REGISTRATION FORM -->
+            <form id="adminRegisterForm">
+
+                <!-- FULL NAME -->
+                <div class="input-group">
+
+                    <label for="fullName">Full Name</label>
+
+                    <input type="text" id="fullName" name="fullName" placeholder="Enter full name" autocomplete="name"
+                        required>
+
+                </div>
+
+                <!-- EMAIL -->
+                <div class="input-group">
+
+                    <label for="email">Work Email Address</label>
+
+                    <input type="email" id="email" name="email" placeholder="Enter work email" autocomplete="email"
+                        required>
+
+                </div>
+
+                <!-- BARANGAY -->
+                <div class="input-group">
+
+                    <label for="barangay">Assigned Barangay</label>
+
+                    <select id="barangay" name="barangay" required>
+
+                        <option value="" disabled selected>
+                            Select Barangay
+                        </option>
+
+                        <option value="Alabang">Alabang</option>
+                        <option value="Ayala Alabang">Ayala Alabang</option>
+                        <option value="Bayanan">Bayanan</option>
+                        <option value="Buli">Buli</option>
+                        <option value="Cupang">Cupang</option>
+                        <option value="Poblacion">Poblacion</option>
+                        <option value="Putatan">Putatan</option>
+                        <option value="Sucat">Sucat</option>
+                        <option value="Tunasan">Tunasan</option>
+
+                    </select>
+
+                </div>
+
+                <!-- ROLE -->
+                <div class="input-group">
+
+                    <label for="role">Role</label>
+
+                    <select id="role" name="role" required>
+
+                        <option value="" disabled selected>
+                            Select your role
+                        </option>
+
+                        <option value="Barangay Captain">
+                            Barangay Captain
+                        </option>
+
+                        <option value="Barangay Staff">
+                            Barangay Staff
+                        </option>
+
+                        <option value="Barangay Secretary">
+                            Barangay Secretary
+                        </option>
+
+                    </select>
+                    <small style="color:gray;">Only one account is allowed for each role in a barangay. If the selected role is already registered, registration will be blocked.</small>
+
+                </div>
+
+                <!-- SECURITY PIN -->
+                <div class="input-group">
+
+                    <label for="security_pin">
+                        Security PIN
+                    </label>
+
+                    <div class="password-wrapper">
+
+                        <input type="password" id="security_pin" name="security_pin"
+                            placeholder="Enter 6-digit Security PIN" inputmode="numeric" autocomplete="off"
+                            maxlength="6" minlength="6" pattern="[0-9]{6}" required>
+
+                        <i class="fa-solid fa-eye toggle-password" data-target="security_pin">
+                        </i>
+
+                    </div>
+
+                    <small style="color: gray;">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Security PIN must contain exactly 6 digits.
+                    </small>
+
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="input-group">
+
+                    <label for="password">Password</label>
+
+                    <div class="password-wrapper">
+
+                        <input type="password" id="password" name="password" placeholder="Enter password"
+                            autocomplete="new-password" minlength="8" required>
+
+                        <i class="fa-solid fa-eye toggle-password" data-target="password">
+                        </i>
+
+                    </div>
+
+                    <!-- PASSWORD REQUIREMENTS -->
+                    <div id="passwordRequirements" style="font-size:12px; margin-top:8px; line-height:1.8;">
+
+                        <div id="lengthCheck">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            At least 8 characters
+                        </div>
+
+                        <div id="letterCheck">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            At least one letter
+                        </div>
+
+                        <div id="numberCheck">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            At least one number
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- CONFIRM PASSWORD -->
+                <div class="input-group">
+
+                    <label for="confirmPassword">
+                        Confirm Password
+                    </label>
+
+                    <div class="password-wrapper">
+
+                        <input type="password" id="confirmPassword" name="confirmPassword"
+                            placeholder="Confirm password" autocomplete="new-password" required>
+
+                        <i class="fa-solid fa-eye toggle-password" data-target="confirmPassword">
+                        </i>
+
+                    </div>
+
+                </div>
+
+                <!-- TERMS AND CONDITIONS -->
+                <div class="input-group" style="display:flex; align-items:center; gap:10px;">
+
+                    <input type="checkbox" id="terms" name="terms" required style="width:auto;">
+
+                    <label for="terms" style="margin:0; cursor:pointer;">
+
+                        I agree to the
+
+                        <a href="#" id="openTerms" style="color:#007bff;">
+
+                            Terms and Conditions
+
+                        </a>
+
+                    </label>
+
+                </div>
+
+                <!-- REGISTER BUTTON -->
+                <button type="submit" class="btn" id="registerBtn">
+
+                    <i class="fa-solid fa-user-plus"></i>
+                    Create Admin Account
+
+                </button>
+
+            </form>
+
+            <!-- LOGIN LINK -->
+            <a href="loginAdmin.html" class="auth-link">
+
+                Already have an account? Login here
+
+            </a>
+
+            <!-- FORGOT PASSWORD -->
+            <a href="forgotpassAdmin.html" class="auth-link">
+
+                Forgot your password?
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- TERMS AND CONDITIONS MODAL -->
+    <div id="termsModal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <span class="close-btn" id="closeTerms">
+                &times;
+            </span>
+
+            <h2>Terms and Conditions & Privacy Policy</h2>
+
+            <p style="margin-top:15px;">
+
+                Welcome to Muntinlupa City BarangayEase.
+
+                By registering an account, you agree to provide
+                accurate information for official barangay
+                administration and management services.
+
+            </p>
+
+            <p style="margin-top:10px;">
+
+                Your information will be securely stored and used
+                only for authorized barangay operations and
+                administrative purposes, subject to the
+                Data Privacy Act of 2012.
+
+            </p>
+
+            <p style="margin-top:10px;">
+
+                You are responsible for maintaining the
+                confidentiality of your account password
+                and Security PIN.
+
+            </p>
+
+            <p style="margin-top:10px;">
+
+                Do not share your login credentials or
+                Security PIN with unauthorized individuals.
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+    <script src="webAdminjs/api-config.js"></script>
+<script src="webAdminjs/registerAdmin.js"></script>
+
+</body>
+
+</html>

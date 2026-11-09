@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarangayEase - Login</title>
+    <link rel="stylesheet" href="webcss/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="form-card">
+        <div class="logo-section">
+            <h1>Muntinlupa City BarangayEase</h1>
+            <p>Resident Login Portal</p>
+        </div>
+
+        <!-- Dynamic feedback message container -->
+        <div id="loginMessage"></div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <!-- Password with Show/Hide Password Toggle -->
+            <div class="input-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" required>
+                    <i class="fa-solid fa-eye toggle-password" data-target="password"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register auth-action-btn">
+                Login
+            </button>
+        </form>
+
+        <div class="links">
+            <a href="forgotpass.html">Forgot Password?</a>
+            <br><br>
+            <a href="register.html">Create Account</a>
+            
+            <!-- Switch papunta sa Admin Portal -->
+            <br><br>
+            <div style="text-align: center;">
+                <a href="../BarangayAdminWEB/loginAdmin.html" style="color: var(--primary); font-size: 14px; text-decoration: none;">
+                    <i class="fas fa-user-shield"></i> Switch to Admin Portal
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="webjs/api-config.js"></script>
+<script src="webjs/login.js"></script>
+</body>
+</html>

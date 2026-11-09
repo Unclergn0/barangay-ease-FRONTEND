@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Login | BarangayEase</title>
+
+    <link rel="stylesheet" href="webAdmincss/brgyAdmin.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            <h1>Muntinlupa City BarangayEase</h1>
+            <p>Barangay Administrator Portal</p>
+        </div>
+
+        <form id="loginForm">
+
+            <div class="input-group">
+                <label for="email">Work Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter your work email"
+                    autocomplete="username"
+                    required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required>
+
+                    <i class="fa-solid fa-eye toggle-password"
+                       data-target="password"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="loginBtn">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                Login
+            </button>
+
+        </form>
+
+        <a href="forgotpassAdmin.html" class="auth-link">
+            Forgot your password?
+        </a>
+
+        <a href="registerAdmin.html" class="auth-link">
+            Don't have an account? Register here
+        </a>
+
+        <div style="text-align:center; margin-top:15px;">
+            <a href="../ResidentWEB/login.html"
+               style="color:var(--primary); font-size:14px; text-decoration:none;">
+                <i class="fas fa-user"></i>
+                Switch to Resident Portal
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="webAdminjs/api-config.js"></script>
+<script src="webAdminjs/loginAdmin.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarangayEase - Resident Dashboard</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="webcss/style.css">
+    <!-- Marked.js for Rendering Clean Markdown to HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <img id="barangayLogo" src="" alt="Barangay Logo" class="topbar-logo">
+                <div class="topbar-brand-info">
+                    <span class="topbar-brgy-name" id="barangayName">Loading...</span>
+                    <span class="topbar-portal-type">Resident Portal (Muntinlupa City)</span>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <i class="fas fa-bell" title="Notifications" onclick="showSection('notificationSection')"></i>
+
+                <!-- Profile Dropdown Container -->
+                <div class="topbar-profile-wrapper" onclick="toggleProfileDropdown()">
+                    <span id="residentName">RESIDENT</span>
+                    <i class="fas fa-user-circle"></i>
+
+                    <!-- Dropdown Menu -->
+                    <div id="profileDropdown" class="profile-dropdown hidden">
+                        <a href="#" onclick="showSection('settingsSection')"><i class="fas fa-cog"></i> Settings</a>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN WRAPPER PARA SA SIDEBAR AT MAIN CONTENT -->
+        <div class="main-wrapper">
+
+            <!-- SIDEBAR -->
+            <aside class="sidebar">
+                <ul class="sidebar-menu">
+                    <li class="menu-category">Main Menu</li>
+                    <li onclick="showSection('serviceSection')"><i class="fas fa-file-invoice"></i> Request Services
+                    </li>
+                    <li onclick="showSection('complaintSection')"><i class="fas fa-triangle-exclamation"></i> Report a
+                        Complaint</li>
+
+                    <li class="menu-category">Support</li>
+                    <li onclick="showSection('chatSection')"><i class="fas fa-robot"></i> AI Chat Support</li>
+                    <li onclick="showSection('notificationSection')"><i class="fas fa-bell"></i> Notifications</li>
+                    <li onclick="showSection('contactBarangaySection')"><i class="fas fa-envelope"></i> Contact Barangay
+                    </li>
+                    <li onclick="showSection('feedbackSection')"><i class="fas fa-star"></i> Rate & Feedback</li>
+                    <li onclick="showSection('transactionSection')"><i class="fas fa-exchange-alt"></i> My Transactions
+                    </li>
+                    <li onclick="showSection('complaintHistorySection')"><i class="fas fa-clipboard-list"></i> Complaint
+                        History</li>
+
+                    <li class="menu-category">Account</li>
+                    <li onclick="showSection('settingsSection')"><i class="fas fa-user-cog"></i> Settings & Profile</li>
+                    <li onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
+                </ul>
+            </aside>
+
+            <!-- MAIN CONTENT AREA -->
+            <main class="main-content">
+
+                <!-- SERVICES SECTION -->
+                <section id="serviceSection" class="content-section">
+                    <h2>Request Barangay Services</h2>
+                    <form id="serviceRequestForm" onsubmit="submitServiceRequest(event)">
+                        <div class="form-group">
+                            <label for="serviceType">Service Type</label>
+                            <select id="serviceType" required>
+                                <option value="Barangay Clearance">Barangay Clearance</option>
+                                <option value="Certificate of Residency">Certificate of Residency</option>
+                                <option value="Certificate of Indigency">Certificate of Indigency</option>
+                                <option value="First Time Job Seeker Certificate">First Time Job Seeker Certificate
+                                </option>
+                                <option value="Barangay ID Application">Barangay ID Application</option>
+                                <option value="Certificate of Good Moral Character">Certificate of Good Moral Character
+                                </option>
+                                <option value="Certificate of Single Status / Co-habitation">Certificate of Single
+                                    Status / Co-habitation</option>
+                                <option value="Barangay Guardianship Certificate">Barangay Guardianship Certificate
+                                </option>
+                                <option value="Business Permit Clearance">Business Permit Clearance</option>
+                                <option value="Business Permit Endorsement">Business Permit Endorsement</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Requirements Needed:</label>
+                            <ul id="requirementsList" style="margin-left: 20px; color: #555; font-size: 14px;">
+                                <!-- Dinamikong mapupuno ng JS -->
+                            </ul>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="servicePurpose">Purpose</label>
+                            <textarea id="servicePurpose" rows="3"
+                                placeholder="Ilagay ang layunin ng paghingi ng dokumento..." required></textarea>
+                        </div>
+
+                        <div class="form-row" style="display: flex; gap: 15px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label for="servicePickupDate">Preferred Pickup Date</label>
+                                <input type="date" id="servicePickupDate" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="servicePickupTime">Preferred Pickup Time</label>
+                                <input type="time" id="servicePickupTime" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="serviceFiles">Upload Supporting Documents (Required)</label>
+                            <input type="file" id="serviceFiles" multiple accept=".pdf, .jpg, .jpeg, .png" required>
+                        </div>
+
+                        <button type="submit" class="auth-action-btn"
+                            style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                            Submit Request
+                        </button>
+                    </form>
+                </section>
+
+                <!-- TRANSACTION SECTION -->
+                <section id="transactionSection" class="content-section hidden">
+                    <h2>My Transactions & Requests</h2>
+                    <div id="transactionListContainer" class="transaction-container">
+                        <!-- Dinamikong ilalagay ng JS ang mga transaksyon dito -->
+                    </div>
+
+                    <!-- Transaction Detail / File Replacement View -->
+                    <div id="transactionDetailView" class="hidden transaction-detail-card">
+                        <button onclick="backToTransactions()" class="btn-back-notif">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </button>
+                        <h3 id="detTransTitle">Document Request</h3>
+                        <p><strong>Request ID:</strong> #<span id="detTransId"></span></p>
+                        <p><strong>Status:</strong> <span id="detTransStatus"
+                                class="transaction-status-badge">Pending</span></p>
+
+                        <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+
+                        <h4>Attached Files & Requirements</h4>
+                        <p id="replaceInstruction" style="font-size: 13px; color: #666; margin-bottom: 10px;"></p>
+                        <div id="detSubmittedFilesList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    </div>
+                </section>
+
+                <!-- NOTIFICATION SECTION -->
+                <section id="notificationSection" class="content-section hidden">
+                    <h2>Notifications</h2>
+                    <div id="notificationList"></div>
+                    <div id="notificationDetailView" class="hidden notif-detail-card">
+                        <button onclick="backToNotifications()" class="btn-back-notif">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <h3 id="detailTitle"></h3>
+                        <p id="detailDescription"></p>
+                    </div>
+                </section>
+
+
+                <!-- COMPLAINT SECTION: IDs match classifyComplaint() in dashboard.js -->
+                <section id="complaintSection" class="content-section hidden">
+                    <div class="section-heading">
+                        <h2>Report a Barangay Concern</h2>
+                        <p>Describe your concern clearly. The AI will help identify its priority.</p>
+                    </div>
+                    <form id="complaintForm" class="dashboard-form"
+                        onsubmit="event.preventDefault(); classifyComplaint();">
+                        <div class="form-group">
+                            <label for="complaintTitle">Complaint Title</label>
+                            <input type="text" id="complaintTitle" name="complaintTitle"
+                                placeholder="e.g., Streetlight not working" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="complaintDescription">Complaint Description</label>
+                            <textarea id="complaintDescription" name="complaintDescription" rows="5"
+                                placeholder="Explain what happened, where it happened, and other important details..."
+                                required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="complaintFiles">Supporting Evidence (Optional)</label>
+                            <input type="file" id="complaintFiles" name="complaintFiles" multiple
+                                accept=".pdf,.jpg,.jpeg,.png">
+                            <small class="field-help">Accepted formats: PDF, JPG, JPEG, PNG.</small>
+                        </div>
+                        <button type="submit" class="auth-action-btn"><i class="fas fa-paper-plane"></i> Analyze and
+                            Submit Complaint</button>
+                    </form>
+                    <div id="classificationResult" class="classification-result" aria-live="polite"></div>
+                </section>
+
+                <!-- AI CHAT SECTION: IDs match sendMessage() in dashboard.js -->
+                <section id="chatSection" class="content-section hidden">
+                    <div class="section-heading">
+                        <h2>AI Chat Support</h2>
+                        <p>Ask general questions about barangay services and requirements.</p>
+                    </div>
+                    <div class="chat-card">
+                        <div class="chat-header">
+                            <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+                            <div>
+                                <h3>BarangayEase Assistant</h3>
+                                <p>AI-powered resident support</p>
+                            </div>
+                        </div>
+                        <div id="chatMessages" class="chat-messages" role="log" aria-live="polite">
+                            <div class="ai-message">Kumusta! Paano kita matutulungan tungkol sa mga serbisyo ng
+                                barangay?</div>
+                        </div>
+                        <form id="chatForm" class="chat-input-form" onsubmit="event.preventDefault(); sendMessage();">
+                            <label class="sr-only" for="chatInput">Your message</label>
+                            <input type="text" id="chatInput" name="chatInput" placeholder="Type your question..."
+                                autocomplete="off" required>
+                            <button type="submit" aria-label="Send message"><i class="fas fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- SETTINGS / PROFILE SECTION -->
+                <section id="settingsSection" class="content-section hidden">
+                    <h2>Account Settings & Profile</h2>
+                    <div class="profile-card profile-summary">
+                        <h3><i class="fas fa-id-card"></i> Profile Information</h3>
+                        <p><strong>Full Name:</strong> <span id="lblFullName"></span></p>
+                        <p><strong>Email:</strong> <span id="lblEmail"></span></p>
+                        <p><strong>Barangay:</strong> <span id="lblBarangay"></span></p>
+                    </div>
+
+                    <div class="profile-card profile-edit-card">
+                        <h3><i class="fas fa-user-edit"></i> Edit Profile</h3>
+                        <p class="section-description">Update your name and email address.</p>
+                        <form id="editProfileForm" class="dashboard-form" onsubmit="saveProfile(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="editProfileFirstName">First Name</label>
+                                    <input type="text" id="editProfileFirstName" name="firstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editProfileLastName">Last Name</label>
+                                    <input type="text" id="editProfileLastName" name="lastName" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProfileEmail">Email Address</label>
+                                <input type="email" id="editProfileEmail" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProfileContact">Mobile Number</label>
+                                <input type="tel" id="editProfileContact" name="contactNumber" inputmode="numeric"
+                                    maxlength="11" placeholder="09XXXXXXXXX">
+                            </div>
+                            <div class="form-group">
+                                <label for="editProfileAddress">House Number and Street</label>
+                                <input type="text" id="editProfileAddress" name="houseStreet">
+                            </div>
+                            <div class="form-group">
+                                <label for="editProfileBarangay">Barangay</label>
+                                <input type="text" id="editProfileBarangay" name="barangay" readonly>
+                            </div>
+                            <button type="submit" class="auth-action-btn"><i class="fas fa-save"></i> Save Profile
+                                Changes</button>
+                        </form>
+                    </div>
+
+                    <div style="background: #fff; padding: 20px; border-radius: 8px;">
+                        <h3>Change Password</h3>
+                        <form onsubmit="updatePassword(event)" style="margin-top: 15px;">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label>Current Password</label>
+                                <input type="password" id="currentPassword" required
+                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label>New Password</label>
+                                <input type="password" id="newPassword" required
+                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label>Confirm New Password</label>
+                                <input type="password" id="confirmPassword" required
+                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+                            <button type="submit"
+                                style="padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Update
+                                Password</button>
+                        </form>
+                    </div>
+                </section>
+
+
+                <!-- COMPLAINT HISTORY -->
+                <section id="complaintHistorySection" class="content-section hidden">
+                    <h2>My Complaint History</h2>
+                    <div id="complaintHistoryList" class="transaction-container">
+                        <p>Complaint records will appear here.</p>
+                    </div>
+                </section>
+
+                <!-- CONTACT BARANGAY -->
+                <section id="contactBarangaySection" class="content-section hidden">
+                    <h2>Contact Barangay</h2>
+                    <p class="section-description">Send a non-emergency inquiry to your barangay office.</p>
+                    <form id="contactBarangayForm" class="dashboard-form" onsubmit="submitBarangayInquiry(event)">
+                        <div class="form-group"><label for="inquirySubject">Subject</label><input id="inquirySubject"
+                                required maxlength="120"></div>
+                        <div class="form-group"><label for="inquiryMessage">Message</label><textarea id="inquiryMessage"
+                                rows="5" required maxlength="3000"></textarea></div>
+                        <button type="submit" class="auth-action-btn">Send Inquiry</button>
+                    </form>
+                </section>
+
+                <!-- FEEDBACK -->
+                <section id="feedbackSection" class="content-section hidden">
+                    <h2>Rate Barangay Services</h2>
+                    <p class="section-description">Share your experience to help improve barangay services.</p>
+                    <form id="feedbackForm" class="dashboard-form" onsubmit="submitResidentFeedback(event)">
+                        <div class="form-group"><label for="feedbackRating">Rating</label><select id="feedbackRating"
+                                required>
+                                <option value="">Select rating</option>
+                                <option value="5">5 - Excellent</option>
+                                <option value="4">4 - Very Good</option>
+                                <option value="3">3 - Good</option>
+                                <option value="2">2 - Fair</option>
+                                <option value="1">1 - Poor</option>
+                            </select></div>
+                        <div class="form-group"><label for="feedbackComment">Comments</label><textarea
+                                id="feedbackComment" rows="4" maxlength="2000"
+                                placeholder="Tell us about your experience..."></textarea></div>
+                        <button type="submit" class="auth-action-btn">Submit Feedback</button>
+                    </form>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript Link -->
+    <script src="webjs/api-config.js"></script>
+<script src="webjs/dashboard.js"></script>
+</body>
+
+</html>
