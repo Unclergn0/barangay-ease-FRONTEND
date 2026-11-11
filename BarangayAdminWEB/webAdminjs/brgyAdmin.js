@@ -1,7 +1,9 @@
-/* BarangayEase - Barangay Admin Dashboard
+/* =========================================================
+   BARANGAYEASE - BARANGAY ADMIN DASHBOARD
    Uses the API routes already present in FRONTEND 2 DASHBOARD.
    Only Critical complaints appear under AI Complaints. Mild and Immediate stay in Complaints.
-*/
+   ========================================================= */
+
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:8080' 
     : 'https://barangay-ease-backend.onrender.com';
@@ -59,7 +61,7 @@ function setText(id, value) { const el = $(id); if (el) el.textContent = value ?
 function belongsToBarangay(resident) { return normalize(resident?.barangay) === normalize(currentBarangay); }
 function residentOf(item) { return item?.resident || item?.residentDetails || null; }
 
- document.addEventListener("DOMContentLoaded", initializeAdminDashboard);
+document.addEventListener("DOMContentLoaded", initializeAdminDashboard);
 async function initializeAdminDashboard() {
   try { loggedAdmin = JSON.parse(localStorage.getItem("loggedAdmin") || "null"); }
   catch { loggedAdmin = null; }
@@ -96,8 +98,7 @@ async function refreshDashboard() {
 async function loadResidents() {
   const table = $("residentsTable"); if (!table) return;
   try {
-    const data = await api("/residents");
-    // The backend already scopes this endpoint to the authenticated admin's barangay.
+    const data = await api("/api/residents");
     residentsCache = Array.isArray(data) ? data : [];
     const header = `<tr><th>First Name</th><th>Last Name</th><th>Mobile Number</th><th>Address</th><th>Barangay</th><th>Email</th></tr>`;
     table.innerHTML = header + (residentsCache.length ? residentsCache.map(r => `<tr><td>${safe(r.firstName)}</td><td>${safe(r.lastName)}</td><td>${safe(r.contactNumber || "N/A")}</td><td>${safe(r.houseStreet || "")}</td><td>${safe(r.barangay)}</td><td>${safe(r.email)}</td></tr>`).join("") : `<tr><td colspan="6" class="empty-row">No residents found in this barangay.</td></tr>`);
@@ -131,11 +132,11 @@ async function downloadProtectedFile(path) {
   }
 }
 async function downloadRequestFile(fileId) {
-  try { await downloadProtectedFile(`/services/files/${encodeURIComponent(fileId)}`); }
+  try { await downloadProtectedFile(`/api/services/files/${encodeURIComponent(fileId)}`); }
   catch (e) { console.error(e); alert(e.message); }
 }
 async function downloadComplaintFile(fileId) {
-  try { await downloadProtectedFile(`/complaints/files/${encodeURIComponent(fileId)}`); }
+  try { await downloadProtectedFile(`/api/complaints/files/${encodeURIComponent(fileId)}`); }
   catch (e) { console.error(e); alert(e.message); }
 }
 function requestActionButtons(id, currentStatus) {
@@ -164,9 +165,8 @@ function requestActionButtons(id, currentStatus) {
 async function loadRequests() {
   const table = $("requestsTable"); if (!table) return;
   try {
-    const data = await api("/services/admin/all");
+    const data = await api("/api/services/admin/all");
     const all = Array.isArray(data) ? data : [];
-    // The backend query is scoped by the authenticated admin's barangay ID.
     requestsCache = all;
     const header = `<tr><th>Request ID</th><th>Resident</th><th>Service Type</th><th>Purpose</th><th>Uploaded Files</th><th>Pickup</th><th>Status</th><th>Actions</th></tr>`;
     table.innerHTML = header + (requestsCache.length ? requestsCache.map(req => {
@@ -196,11 +196,10 @@ async function changeRequestStatus(id, status, presetNote) {
   }
   try {
     const noteParam = note ? `&note=${encodeURIComponent(note)}` : "";
-    await api(`/services/admin/status/${id}?status=${encodeURIComponent(status)}${noteParam}`, { method: "PUT" });
+    await api(`/api/services/admin/status/${id}?status=${encodeURIComponent(status)}${noteParam}`, { method: "PUT" });
     await refreshDashboard(); alert(`Request #${id} updated to ${status}. The resident was notified.`);
   } catch (e) { console.error(e); alert(`Unable to update request: ${e.message}`); }
 }
-// "Request additional requirements": keeps the request Under Review and tells the resident exactly what to submit.
 async function requestMoreDocuments(id) {
   const note = (prompt(`What must the resident submit for request #${id}? (this message is sent to the resident)`) || "").trim();
   if (!note) return;
@@ -220,11 +219,8 @@ async function loadComplaints() {
     return `<tr><td>#${safe(id)}</td><td>${safe(resident)}</td><td>${safe(c.complaintDetails || c.description || "")}</td><td>${evidence}</td><td>${safe((c.classificationType || "critical").toUpperCase())}<br><small>${safe(c.aiMessage || "")}</small></td><td>${safe(reviewStatus)}${note}</td><td>${safe(c.status || "Pending")}</td><td><button class="admin-action approve" onclick="reviewAiComplaint(${id},'ACCEPT')">Accept AI</button><button class="admin-action" onclick="reviewAiComplaint(${id},'UPDATE')">Change Category</button><button class="admin-action reject" onclick="reviewAiComplaint(${id},'CANCEL')">Cancel AI</button></td></tr>`;
   }).join("") : `<tr><td colspan="8" class="empty-row">No Critical AI complaints found.</td></tr>`;
   try {
-    const data = await api("/complaints");
+    const data = await api("/api/complaints");
     const all = Array.isArray(data) ? data : [];
-    // GET /complaints is already scoped by the authenticated admin's barangay
-    // on the backend. Trust that authorized result instead of filtering again
-    // against potentially stale localStorage values.
     complaintsCache = all;
     const critical = complaintsCache.filter(c => normalize(c.classificationType) === "critical"
       && normalize(c.aiReviewStatus).toUpperCase() === "PENDING");
@@ -257,7 +253,7 @@ async function reviewAiComplaint(id, action) {
   if (note === null) return;
   if (note.trim()) body.note = note.trim();
   try {
-    await api(`/complaints/admin/ai-review/${id}`, {
+    await api(`/api/complaints/admin/ai-review/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
@@ -269,7 +265,7 @@ async function reviewAiComplaint(id, action) {
 async function changeComplaintStatus(id, status) {
   if (!Number.isFinite(id) || !confirm(`Change complaint #${id} status to ${status}?`)) return;
   try {
-    await api(`/complaints/admin/status/${id}?status=${encodeURIComponent(status)}`, { method: "PUT" });
+    await api(`/api/complaints/admin/status/${id}?status=${encodeURIComponent(status)}`, { method: "PUT" });
     await loadComplaints(); renderAnalytics(); alert(`Complaint #${id} updated to ${status}.`);
   } catch (e) { console.error(e); alert(`Unable to update complaint: ${e.message}`); }
 }
@@ -317,8 +313,6 @@ function recordDate(item) {
 }
 function isWithinReportDates(item, from, to) {
   const date = recordDate(item);
-  // If a date range is active, records without a valid timestamp cannot be
-  // accurately assigned to that period and are excluded from the filtered set.
   if (!date) return !from && !to;
   if (from) {
     const start = new Date(`${from}T00:00:00`);
@@ -441,7 +435,7 @@ function refreshCurrentData() { refreshDashboard(); }
 
 /* ===== Notifications: bell, unread badge, and live EMERGENCY / CRITICAL alerts ===== */
 let notificationsCache = [];
-let seenNotificationIds = null; // null until the first load, so old items are not shown as "new"
+let seenNotificationIds = null;
 let notificationTimer = null;
 const isAlertTitle = title => /^(EMERGENCY|CRITICAL)/i.test(String(title || ""));
 
@@ -455,12 +449,11 @@ function notifTime(value) {
 
 async function loadAdminNotifications() {
   try {
-    const data = await api("/notifications");
+    const data = await api("/api/notifications");
     notificationsCache = (Array.isArray(data) ? data : [])
       .slice().sort((a, b) => Number(b.notificationId) - Number(a.notificationId));
     const unreadAlerts = notificationsCache.filter(n => !n.isRead && isAlertTitle(n.title));
     if (seenNotificationIds === null) {
-      // First load after login: show the newest unread emergency right away.
       seenNotificationIds = new Set(notificationsCache.map(n => n.notificationId));
       if (unreadAlerts.length) showEmergencyToast(unreadAlerts[0], unreadAlerts.length);
     } else {
@@ -494,7 +487,7 @@ function toggleNotifications(force) {
 async function openAdminNotification(id) {
   const n = notificationsCache.find(x => Number(x.notificationId) === id); if (!n) return;
   if (!n.isRead) {
-    try { await api(`/notifications/${id}/read`, { method: "PUT" }); n.isRead = true; }
+    try { await api(`/api/notifications/${id}/read`, { method: "PUT" }); n.isRead = true; }
     catch (e) { console.error(e); }
   }
   toggleNotifications(false);
@@ -505,7 +498,7 @@ async function openAdminNotification(id) {
 
 async function markAllNotificationsRead() {
   const unread = notificationsCache.filter(n => !n.isRead);
-  await Promise.allSettled(unread.map(n => api(`/notifications/${Number(n.notificationId)}/read`, { method: "PUT" })));
+  await Promise.allSettled(unread.map(n => api(`/api/notifications/${Number(n.notificationId)}/read`, { method: "PUT" })));
   await loadAdminNotifications();
 }
 
