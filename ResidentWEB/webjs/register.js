@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
 
     const form = document.getElementById("registerForm");
@@ -10,8 +9,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const registerBtn = form.querySelector('[type="submit"]');
 
-    const API_URL =
-        `${window.BE_API_BASE_URL || "http://localhost:8080/api"}/residents/register`;
+    // DITO ANG PAGBABAGO: Dynamic hostname detection para sa Netlify at Localhost
+    const BACKEND_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:8080'
+        : 'https://barangay-ease-backend.onrender.com';
+
+    const API_URL = `${BACKEND_BASE}/api/residents/register`;
 
     // Get input value
     const getValue = (id) => {
