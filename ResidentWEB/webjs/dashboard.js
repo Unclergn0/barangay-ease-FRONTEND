@@ -7,7 +7,7 @@
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:8080' 
     : 'https://barangay-ease-backend.onrender.com';
-const GEMINI_URL = `${API_BASE_URL}/ai/chat`;
+const GEMINI_URL = `${API_BASE_URL}/api/ai/chat`;
 
 /* =========================================================
    1. RESIDENT SESSION
@@ -409,7 +409,7 @@ async function saveProfile(event) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/resident/profile`, {
+        const response = await fetch(`${API_BASE_URL}/api/resident/profile`, {
             method: "PUT",
             headers: residentHeaders(true),
             body: JSON.stringify(payload)
@@ -485,7 +485,7 @@ async function updatePassword(event) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/resident/password`, {
+        const response = await fetch(`${API_BASE_URL}/api/resident/password`, {
             method: "PUT",
             headers: residentHeaders(true),
             body: JSON.stringify({
@@ -727,7 +727,7 @@ async function submitServiceRequest(event) {
     });
 
     try {
-        const response = await fetch(`${API_BASE_URL}/services/request`, {
+        const response = await fetch(`${API_BASE_URL}/api/services/request`, {
             method: "POST",
             headers: getResidentAuthHeaders(),
             body: formData
@@ -773,7 +773,7 @@ async function fetchUserTransactions() {
 
     try {
         const response = await fetch(
-            `${API_BASE_URL}/services/transactions?residentId=${encodeURIComponent(currentResidentId)}`,
+            `${API_BASE_URL}/api/services/transactions?residentId=${encodeURIComponent(currentResidentId)}`,
             {
                 method: "GET",
                 headers: getResidentAuthHeaders()
@@ -959,7 +959,7 @@ async function cancelTransaction(transactionId) {
 
     try {
         const response = await fetch(
-            `${API_BASE_URL}/services/transactions/${encodeURIComponent(transactionId)}`,
+            `${API_BASE_URL}/api/services/transactions/${encodeURIComponent(transactionId)}`,
             {
                 method: "DELETE",
                 headers: getResidentAuthHeaders()
@@ -1109,7 +1109,7 @@ function renderSubmittedFiles() {
             const downloadButton = document.createElement("button");
             downloadButton.type = "button";
             downloadButton.textContent = "Preview / Download";
-            downloadButton.addEventListener("click", () => downloadResidentFile(`/services/files/${encodeURIComponent(fileObj.fileId)}`).catch(error => alert(error.message)));
+            downloadButton.addEventListener("click", () => downloadResidentFile(`/api/services/files/${encodeURIComponent(fileObj.fileId)}`).catch(error => alert(error.message)));
             item.appendChild(downloadButton);
         }
 
@@ -1182,7 +1182,7 @@ async function replaceSpecificFile(index) {
 
     try {
         const response = await fetch(
-            `${API_BASE_URL}/services/transactions/replace-file`,
+            `${API_BASE_URL}/api/services/transactions/replace-file`,
             {
                 method: "POST",
                 headers: getResidentAuthHeaders(),
@@ -1225,10 +1225,7 @@ function backToTransactions() {
 
 /* =========================================================
    12. AI COMPLAINT CLASSIFICATION
-   CRITICAL = Not submitted through regular complaint form.
-   MILD and IMMEDIATE = Submitted normally.
    ========================================================= */
-
 
 async function classifyComplaint() {
     const title =
@@ -1261,11 +1258,8 @@ async function classifyComplaint() {
         result.textContent = "Analyzing and submitting your complaint...";
     }
 
-    // The backend performs the authoritative AI + emergency-screen classification
-    // during save. Do not call the AI endpoint here a second time.
     const priority = "mild";
 
-    // STEP 1: SUBMIT COMPLAINT; SERVER CLASSIFIES IT BEFORE PERSISTING
     try {
         const formData = new FormData();
 
@@ -1291,7 +1285,7 @@ async function classifyComplaint() {
         }
 
         const response = await fetch(
-            `${API_BASE_URL}/complaints`,
+            `${API_BASE_URL}/api/complaints`,
             {
                 method: "POST",
                 headers: getResidentAuthHeaders(),
@@ -1317,7 +1311,6 @@ async function classifyComplaint() {
             );
         }
 
-        // STEP 2: DISPLAY THE SERVER-RETURNED CLASSIFICATION
         if (result) {
             result.innerHTML = `
                 <div class="warning-box">
@@ -1374,7 +1367,6 @@ async function classifyComplaint() {
 
 /* =========================================================
    13. AI CHATBOT - BARANGAYEASE
-   Backend Gemini/Groq Integration & Clean Markdown Formatting
    ========================================================= */
 
 async function sendMessage() {
@@ -1399,35 +1391,26 @@ async function sendMessage() {
         return;
     }
 
-    // Display resident message
     const userMessage = document.createElement("div");
-
     userMessage.className = "user-message";
     userMessage.textContent = question;
 
     messages.appendChild(userMessage);
-
     input.value = "";
 
-    // Display loading message
     const pending = document.createElement("div");
-
     pending.className = "ai-message";
     pending.textContent = "Nag-iisip ang AI...";
 
     messages.appendChild(pending);
-
     messages.scrollTop = messages.scrollHeight;
 
     try {
-
         const response = await fetch(
             GEMINI_URL,
             {
                 method: "POST",
-
                 headers: getResidentAuthHeaders(true),
-
                 body: JSON.stringify({
                     message: question
                 })
@@ -1437,7 +1420,6 @@ async function sendMessage() {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-
             console.error("AI Chat HTTP Error:", {
                 status: response.status,
                 message: data.message
@@ -1446,7 +1428,6 @@ async function sendMessage() {
             if (response.status === 401 || response.status === 403) {
                 pending.textContent =
                     "Your session is no longer valid. Please log in again.";
-
                 return;
             }
 
@@ -1454,14 +1435,12 @@ async function sendMessage() {
                 pending.textContent =
                     data.message ||
                     "You are sending messages too quickly. Please wait a moment and try again.";
-
                 return;
             }
 
             if (response.status === 503) {
                 pending.textContent =
                     "AI Chat is not configured on the server. Please contact the administrator.";
-
                 return;
             }
 
@@ -1469,7 +1448,6 @@ async function sendMessage() {
                 pending.textContent =
                     data.message ||
                     "The AI service is temporarily unavailable. Please try again later.";
-
                 return;
             }
 
@@ -1483,7 +1461,6 @@ async function sendMessage() {
             data.message ||
             "Pasensya na, walang natanggap na sagot mula sa AI.";
 
-        // I-parse ang markdown patungong malinis at maayos na HTML (gaya ng Gemini UI)
         if (window.marked && typeof window.marked.parse === "function") {
             pending.innerHTML = window.marked.parse(rawReply);
         } else {
@@ -1491,7 +1468,6 @@ async function sendMessage() {
         }
 
     } catch (error) {
-
         console.error("AI Chat Error:", error);
 
         pending.textContent =
@@ -1500,7 +1476,6 @@ async function sendMessage() {
 
     messages.scrollTop = messages.scrollHeight;
 }
-
 
 /* =========================================================
    14. NOTIFICATIONS
@@ -1515,7 +1490,6 @@ async function fetchUserNotifications() {
     if (!currentResidentId) {
         container.textContent =
             "Resident account not found. Please log in again.";
-
         return;
     }
 
@@ -1523,7 +1497,7 @@ async function fetchUserNotifications() {
 
     try {
         const response = await fetch(
-            `${API_BASE_URL}/notifications?residentId=${encodeURIComponent(currentResidentId)}`,
+            `${API_BASE_URL}/api/notifications`,
             {
                 headers: getResidentAuthHeaders()
             }
@@ -1546,21 +1520,17 @@ async function fetchUserNotifications() {
 
         items.forEach(item => {
             const card = document.createElement("div");
-
             card.className = "clickable-notif";
 
             const title = document.createElement("strong");
-
             title.textContent =
                 item.title || "Barangay Update";
 
             const message = document.createElement("p");
-
             message.textContent =
                 item.message || item.description || "";
 
             const state = document.createElement("small");
-
             state.textContent =
                 item.isRead || item.read ? "Read" : "Unread";
 
@@ -1594,7 +1564,7 @@ async function fetchUserNotifications() {
 async function markNotificationRead(id) {
     try {
         const response = await fetch(
-            `${API_BASE_URL}/notifications/${encodeURIComponent(id)}/read`,
+            `${API_BASE_URL}/api/notifications/${encodeURIComponent(id)}/read`,
             {
                 method: "PUT",
                 headers: getResidentAuthHeaders()
@@ -1639,7 +1609,6 @@ function backToNotifications() {
     fetchUserNotifications();
 }
 
-
 async function downloadResidentFile(path) {
     const response = await fetch(`${API_BASE_URL}${path}`, {
         headers: getResidentAuthHeaders()
@@ -1670,7 +1639,7 @@ async function replaceComplaintAttachment(complaintId, fileId, input) {
     data.append("fileId", fileId);
     data.append("file", input.files[0]);
     try {
-        const response = await fetch(`${API_BASE_URL}/complaints/${encodeURIComponent(complaintId)}/files/replace`, {
+        const response = await fetch(`${API_BASE_URL}/api/complaints/${encodeURIComponent(complaintId)}/files/replace`, {
             method: "POST",
             headers: getResidentAuthHeaders(),
             body: data
@@ -1697,7 +1666,6 @@ async function fetchResidentComplaintHistory() {
     if (!currentResidentId) {
         container.textContent =
             "Please log in again to view your complaint history.";
-
         return;
     }
 
@@ -1705,7 +1673,7 @@ async function fetchResidentComplaintHistory() {
 
     try {
         const response = await fetch(
-            `${API_BASE_URL}/complaints/resident/${encodeURIComponent(currentResidentId)}`,
+            `${API_BASE_URL}/api/complaints/resident/${encodeURIComponent(currentResidentId)}`,
             {
                 headers: getResidentAuthHeaders()
             }
@@ -1730,31 +1698,25 @@ async function fetchResidentComplaintHistory() {
 
         rows.forEach(row => {
             const card = document.createElement("article");
-
             card.className = "transaction-card";
 
             const title = document.createElement("h3");
-
             title.textContent =
                 row.title || "Barangay Complaint";
 
             const details = document.createElement("p");
-
             details.textContent =
                 row.complaintDetails || row.description || "";
 
             const classification = document.createElement("p");
-
             classification.textContent =
                 `Classification: ${row.classificationType || "Pending"}`;
 
             const status = document.createElement("p");
-
             status.textContent =
                 `Status: ${row.status || "Pending"}`;
 
             const date = document.createElement("small");
-
             date.textContent =
                 row.createdAt || row.dateSubmitted || "";
 
@@ -1765,7 +1727,7 @@ async function fetchResidentComplaintHistory() {
                 const fileHeading = document.createElement("strong");
                 fileHeading.textContent = "Submitted evidence:";
                 card.appendChild(fileHeading);
-                attachments.forEach((file, index) => {
+                attachments.forEach((file) => {
                     const fileRow = document.createElement("div");
                     fileRow.className = "submitted-file-item";
                     const fileName = document.createElement("span");
@@ -1776,7 +1738,7 @@ async function fetchResidentComplaintHistory() {
                         const download = document.createElement("button");
                         download.type = "button";
                         download.textContent = "Preview / Download";
-                        download.addEventListener("click", () => downloadResidentFile(`/complaints/files/${encodeURIComponent(file.fileId)}`).catch(e => alert(e.message)));
+                        download.addEventListener("click", () => downloadResidentFile(`/api/complaints/files/${encodeURIComponent(file.fileId)}`).catch(e => alert(e.message)));
                         fileRow.appendChild(download);
                     }
 
@@ -1827,13 +1789,12 @@ async function submitBarangayInquiry(event) {
         alert(
             "Please complete the form and sign in again if needed."
         );
-
         return;
     }
 
     try {
         const response = await fetch(
-            `${API_BASE_URL}/resident/inquiries`,
+            `${API_BASE_URL}/api/resident/inquiries`,
             {
                 method: "POST",
                 headers: residentHeaders(true),
@@ -1881,13 +1842,12 @@ async function submitResidentFeedback(event) {
         alert(
             "Please select a rating and sign in again if needed."
         );
-
         return;
     }
 
     try {
         const response = await fetch(
-            `${API_BASE_URL}/feedback`,
+            `${API_BASE_URL}/api/feedback`,
             {
                 method: "POST",
                 headers: residentHeaders(true),
