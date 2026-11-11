@@ -1,13 +1,16 @@
-
 /* ==========================================
    BARANGAYEASE RESIDENT LOGIN
 ========================================== */
 
 /* ==========================================
-   BACKEND CONFIGURATION
+   BACKEND CONFIGURATION (Dynamic Hostname Detection)
 ========================================== */
 
-const API_AUTH_URL = window.BE_API_BASE_URL || "http://localhost:8080/api";
+const BACKEND_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8080'
+    : 'https://barangay-ease-backend.onrender.com';
+
+const API_AUTH_URL = `${BACKEND_BASE}/api`;
 
 /* ==========================================
    BARANGAY DASHBOARD MAPPING
@@ -303,7 +306,6 @@ function saveResidentSession(resident) {
     const residentJson = JSON.stringify(resident);
 
     try {
-        // Save to localStorage.
         localStorage.setItem("loggedInResident", residentJson);
         localStorage.setItem("resident", residentJson);
         localStorage.setItem("residentID", String(resident.residentID));
@@ -313,8 +315,6 @@ function saveResidentSession(resident) {
         localStorage.setItem("barangay", resident.barangay);
         localStorage.setItem("token", resident.token);
 
-        // Save to sessionStorage for compatibility
-        // with existing dashboard scripts.
         sessionStorage.setItem("loggedInResident", residentJson);
         sessionStorage.setItem("resident", residentJson);
         sessionStorage.setItem("residentID", String(resident.residentID));
@@ -367,105 +367,48 @@ function processSuccessfulLogin(data) {
         data.role ||
         "RESIDENT";
 
-    /* --------------------------------------
-       VALIDATE RESIDENT ID
-    -------------------------------------- */
-
     if (residentId === null) {
         console.error("Resident ID is missing.");
-
-        showLoginMessage(
-            "Login response is missing the Resident ID. Please check your backend login response.",
-            "error"
-        );
-
+        showLoginMessage("Login response is missing the Resident ID.", "error");
         return false;
     }
-
-    /* --------------------------------------
-       VALIDATE JWT TOKEN
-    -------------------------------------- */
 
     if (!token) {
         console.error("JWT token is missing.");
-
-        showLoginMessage(
-            "Login succeeded but the authentication token is missing. Please check your backend login response.",
-            "error"
-        );
-
+        showLoginMessage("Login succeeded but authentication token is missing.", "error");
         return false;
     }
-
-    /* --------------------------------------
-       VALIDATE BARANGAY
-    -------------------------------------- */
 
     if (!residentBarangay) {
         console.error("Resident barangay is missing.");
-
-        showLoginMessage(
-            "Your barangay information is missing. Please check your resident account.",
-            "error"
-        );
-
+        showLoginMessage("Your barangay information is missing.", "error");
         return false;
     }
-
-    /* --------------------------------------
-       CREATE RESIDENT SESSION
-    -------------------------------------- */
 
     const resident = {
         residentID: residentId,
         residentId: residentId,
         id: residentId,
-
         firstName: firstName,
         lastName: lastName,
         email: email,
-
         barangay: residentBarangay,
         role: role,
-
         token: token
     };
-
-    /* --------------------------------------
-       SAVE SESSION
-    -------------------------------------- */
 
     clearOldLoginSession();
 
     const saved = saveResidentSession(resident);
 
     if (!saved) {
-        showLoginMessage(
-            "Unable to save your login session. Please check your browser settings.",
-            "error"
-        );
-
+        showLoginMessage("Unable to save your login session.", "error");
         return false;
     }
 
-    /* --------------------------------------
-       LOGIN SUCCESS
-    -------------------------------------- */
+    showLoginMessage("Login successful! Redirecting...", "success");
 
-    console.log("Resident login successful:", {
-        residentID: residentId,
-        barangay: residentBarangay,
-        role: role,
-        hasToken: Boolean(token)
-    });
-
-    showLoginMessage(
-        "Login successful! Redirecting...",
-        "success"
-    );
-
-    const residentDashboard =
-        getBarangayDashboard(residentBarangay);
+    const residentDashboard = getBarangayDashboard(residentBarangay);
 
     setTimeout(() => {
         window.location.href = residentDashboard;
@@ -485,30 +428,13 @@ if (loginForm) {
         const emailInput = document.getElementById("email");
         const passwordInput = document.getElementById("password");
 
-        const email = emailInput
-            ? emailInput.value.trim()
-            : "";
-
-        const password = passwordInput
-            ? passwordInput.value
-            : "";
-
-        /* --------------------------------------
-           VALIDATE INPUTS
-        -------------------------------------- */
+        const email = emailInput ? emailInput.value.trim() : "";
+        const password = passwordInput ? passwordInput.value : "";
 
         if (!email || !password) {
-            showLoginMessage(
-                "Please fill in all fields.",
-                "error"
-            );
-
+            showLoginMessage("Please fill in all fields.", "error");
             return;
         }
-
-        /* --------------------------------------
-           LOGIN BUTTON
-        -------------------------------------- */
 
         const loginButton =
             loginForm.querySelector(".auth-action-btn") ||
@@ -516,83 +442,48 @@ if (loginForm) {
 
         if (loginButton) {
             loginButton.disabled = true;
-
-            loginButton.innerHTML =
-                '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
+            loginButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
         }
 
         showLoginMessage("", "error");
-
-        /* --------------------------------------
-           SEND LOGIN REQUEST
-        -------------------------------------- */
 
         try {
             const response = await fetch(
                 `${API_AUTH_URL}/auth/login`,
                 {
                     method: "POST",
-
                     headers: {
                         "Content-Type": "application/json",
                         "Accept": "application/json"
                     },
-
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
+                    body: JSON.stringify({ email, password })
                 }
             );
 
             const responseText = await response.text();
-
             let data = {};
 
             try {
-                data = responseText
-                    ? JSON.parse(responseText)
-                    : {};
+                data = responseText ? JSON.parse(responseText) : {};
             } catch {
-                data = {
-                    message: responseText
-                };
+                data = { message: responseText };
             }
 
-            /* ----------------------------------
-               HANDLE BACKEND ERRORS
-            ---------------------------------- */
-
             if (!response.ok) {
-                const errorMessage =
-                    typeof data === "string"
-                        ? data
-                        : data.message ||
-                          data.error ||
-                          "Invalid email or password.";
-
+                const errorMessage = typeof data === "string"
+                    ? data
+                    : data.message || data.error || "Invalid email or password.";
                 throw new Error(errorMessage);
             }
 
-            /* ----------------------------------
-               PROCESS LOGIN RESPONSE
-            ---------------------------------- */
-
             const success = processSuccessfulLogin(data);
-
             if (!success) {
                 resetButton(loginButton);
             }
 
         } catch (error) {
             console.error("Login Error:", error);
-
-            showLoginMessage(
-                error.message ||
-                "Unable to connect to the backend. Please try again.",
-                "error"
-            );
-
+            showLoginMessage(error.message || "Unable to connect to the backend.", "error");
             resetButton(loginButton);
         }
     });

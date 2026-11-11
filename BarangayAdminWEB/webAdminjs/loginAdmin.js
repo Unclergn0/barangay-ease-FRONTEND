@@ -1,9 +1,17 @@
+/* ==========================================
+   BARANGAYEASE ADMIN LOGIN
+========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("loginForm");
     const loginBtn = document.getElementById("loginBtn");
 
-    const API_URL = `${window.BE_API_BASE_URL || "http://localhost:8080/api"}/admins/login`;
+    // Dynamic Hostname Detection para sa Admin Login
+    const BACKEND_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:8080'
+        : 'https://barangay-ease-backend.onrender.com';
+
+    const API_URL = `${BACKEND_BASE}/api/admins/login`;
 
     if (!form) {
         console.error("Admin login form not found.");
@@ -22,8 +30,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            loginBtn.disabled = true;
-            loginBtn.textContent = "Logging in...";
+            if (loginBtn) {
+                loginBtn.disabled = true;
+                loginBtn.textContent = "Logging in...";
+            }
 
             const response = await fetch(API_URL, {
                 method: "POST",
@@ -54,10 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 role: data.role || ""
             };
 
-            // Save the exact object expected by brgyAdmin.js
             localStorage.setItem("loggedAdmin", JSON.stringify(adminSession));
 
-            // Keep these keys for compatibility with other existing scripts.
             localStorage.setItem("token", data.token);
             localStorage.setItem("role", "ADMIN");
             localStorage.setItem("adminRole", adminSession.role);
@@ -75,8 +83,10 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Admin login error:", error);
             alert(error.message || "Unable to connect to the server.");
         } finally {
-            loginBtn.disabled = false;
-            loginBtn.textContent = "Login";
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Login";
+            }
         }
     });
 
