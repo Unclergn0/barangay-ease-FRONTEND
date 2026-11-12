@@ -1400,7 +1400,7 @@ async function sendMessage() {
 
     const pending = document.createElement("div");
     pending.className = "ai-message";
-    pending.textContent = "Nag-iisip ang AI...";
+    pending.textContent = "AI is thinking...";
 
     messages.appendChild(pending);
     messages.scrollTop = messages.scrollHeight;
@@ -1427,7 +1427,7 @@ async function sendMessage() {
 
             if (response.status === 401 || response.status === 403) {
                 pending.textContent =
-                    "Your session is no longer valid. Please log in again.";
+                    "Your session has expired. Please log in again.";
                 return;
             }
 
@@ -1459,7 +1459,7 @@ async function sendMessage() {
         const rawReply =
             data.reply ||
             data.message ||
-            "Pasensya na, walang natanggap na sagot mula sa AI.";
+            "Sorry, the AI assistant did not provide a response.";
 
         if (window.marked && typeof window.marked.parse === "function") {
             pending.innerHTML = window.marked.parse(rawReply);
@@ -1471,7 +1471,7 @@ async function sendMessage() {
         console.error("AI Chat Error:", error);
 
         pending.textContent =
-            "Hindi muna available ang AI assistant. Maaari mong kontakin ang barangay office.";
+            "The AI assistant is temporarily unavailable. Please contact the barangay office.";
     }
 
     messages.scrollTop = messages.scrollHeight;
