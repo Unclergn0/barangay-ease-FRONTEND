@@ -227,8 +227,8 @@ const themes = {
     },
 
     Poblacion: {
-        primary: "#FFD60A",
-        secondary: "#0A369D"
+        primary: "#0A369D",
+        secondary: "#FFD60A"
     },
 
     Putatan: {
@@ -243,7 +243,7 @@ const themes = {
 
     Sucat: {
         primary: "#0A369D",
-        secondary: "#FFD60A"
+        secondary: "#FFFFFF"
     }
 };
 
