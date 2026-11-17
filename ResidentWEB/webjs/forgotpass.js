@@ -1,8 +1,12 @@
 /* ==========================================
-   BACKEND CONFIG
+   BACKEND CONFIG (Dynamic detection para sa Netlify at Localhost)
 ========================================== */
 
-const API_URL = window.BE_API_BASE_URL || "http://localhost:8080/api";
+const BACKEND_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8080'
+    : 'https://barangay-ease-backend.onrender.com';
+
+const API_URL = `${BACKEND_BASE}/api`;
 
 /* ==========================================
    ELEMENTS
@@ -56,6 +60,10 @@ function validatePassword(password) {
     return passwordPattern.test(password);
 }
 
+/* ==========================================
+   FORM SUBMISSION
+========================================== */
+
 if (forgotPasswordForm) {
     forgotPasswordForm.addEventListener("submit", async function(event) {
         event.preventDefault();
@@ -93,21 +101,31 @@ if (forgotPasswordForm) {
         }
 
         try {
+            // Tandaan: I-double check kung /residents/forgot-password o /residents/update-password ang endpoint sa backend mo
             const response = await fetch(`${API_URL}/residents/forgot-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: "POST", // O PUT depende sa Spring Boot Controller mapping mo
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
                 body: JSON.stringify({ email, securityPin, newPassword })
             });
 
-            const data = await response.json();
+            const responseText = await response.text();
+            let data = {};
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch {
+                data = { message: responseText };
+            }
 
             if (!response.ok) {
-                throw new Error(data.message || "Unable to reset password.");
+                throw new Error(data.message || data.error || "Unable to reset password.");
             }
 
             showMessage(data.message || "Password reset successfully. Redirecting...", "success");
 
-            document.getElementById("forgotPasswordForm").reset();
+            forgotPasswordForm.reset();
 
             setTimeout(function() {
                 window.location.href = "login.html";
@@ -116,7 +134,7 @@ if (forgotPasswordForm) {
         } catch (error) {
             console.error("Forgot Password Error:", error);
             showMessage(error.message || "Server error. Please try again.", "error");
-
+        } finally {
             if (button) {
                 button.disabled = false;
                 button.innerHTML = 'Reset Password';
