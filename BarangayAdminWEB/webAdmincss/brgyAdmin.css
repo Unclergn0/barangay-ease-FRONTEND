@@ -1027,6 +1027,54 @@ table tr:hover {
     }
 }
 
+/* ANALYTICS DASHBOARD LINKS */
+.portal-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 12px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.portal-link {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px;
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.portal-link:hover {
+    background: var(--primary);
+    color: white;
+}
+
+@media (max-width: 480px) {
+    .portal-link {
+        flex-direction: column;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 350px) {
+    .portal-links {
+        flex-direction: column;
+    }
+
+    .portal-link {
+        flex-direction: row;
+    }
+}
 
 /* Analytics and printable reports */
 .report-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:16px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin:18px 0}
