@@ -8,8 +8,10 @@
     catch (_) { return null; }
   })();
 
-  let barChart = null;
-  let residentsChart = null;
+  let complaintsChart = null;
+  let requestsChart = null;
+  let criticalChart = null;
+  let priorityChart = null;
   let trendChart = null;
   let criticalRows = [];
 
@@ -63,44 +65,114 @@
     return data;
   }
 
+  function createBarangayChart(canvasId, rows, valueKey, label, color, existingChart) {
+    if (existingChart) existingChart.destroy();
+
+    return new Chart(byId(canvasId), {
+      type: 'bar',
+      data: {
+        labels: rows.map((row) => row.barangay),
+        datasets: [{
+          label,
+          data: rows.map((row) => Number(row[valueKey] || 0)),
+          backgroundColor: color,
+          borderRadius: 6,
+          maxBarThickness: 34
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: {
+            label: (context) => `${label}: ${Number(context.raw || 0).toLocaleString()}`
+          } }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 } },
+          y: { ticks: { autoSkip: false } }
+        }
+      }
+    });
+  }
+
   function renderCharts(data) {
     const rows = data.barangays || [];
-    const labels = rows.map((r) => r.barangay);
-    if (barChart) barChart.destroy();
-    barChart = new Chart(byId('barangayBarChart'), {
-      type: 'bar',
-      data: { labels, datasets: [
-        { label: 'Complaints', data: rows.map((r) => r.complaints), backgroundColor: '#f59e0b' },
-        { label: 'Service Requests', data: rows.map((r) => r.requests), backgroundColor: '#1d4ed8' },
-        { label: 'Pending Requests', data: rows.map((r) => r.pendingRequests), backgroundColor: '#dc2626' }
-      ] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-    });
 
-    if (residentsChart) residentsChart.destroy();
+    // Three separate, full-width comparisons across every registered barangay.
+    complaintsChart = createBarangayChart(
+      'complaintsByBarangayChart', rows, 'complaints',
+      'Complaints', '#f59e0b', complaintsChart
+    );
+    requestsChart = createBarangayChart(
+      'requestsByBarangayChart', rows, 'requests',
+      'Service Requests', '#1d4ed8', requestsChart
+    );
+    criticalChart = createBarangayChart(
+      'criticalByBarangayChart', rows, 'criticalComplaints',
+      'Critical & Immediate Complaints', '#dc2626', criticalChart
+    );
+
+    if (priorityChart) priorityChart.destroy();
     const priorities = data.priorityDistribution || { mild: 0, immediate: 0, critical: 0 };
-    residentsChart = new Chart(byId('residentsDoughnutChart'), {
+    priorityChart = new Chart(byId('priorityDoughnutChart'), {
       type: 'doughnut',
-      data: { labels: ['Mild', 'Immediate', 'Critical'], datasets: [{ label: 'Complaints', data: [priorities.mild || 0, priorities.immediate || 0, priorities.critical || 0], backgroundColor: ['#059669', '#f59e0b', '#dc2626'] }] },
+      data: {
+        labels: ['Mild', 'Immediate', 'Critical'],
+        datasets: [{
+          label: 'Complaints',
+          data: [
+            Number(priorities.mild || 0),
+            Number(priorities.immediate || 0),
+            Number(priorities.critical || 0)
+          ],
+          backgroundColor: ['#059669', '#f59e0b', '#dc2626']
+        }]
+      },
       options: { responsive: true, maintainAspectRatio: false }
     });
 
     const daily = data.daily || [];
-    const dates = [...new Set(daily.map((r) => r.date))].sort();
-    const totals = dates.map((date) => daily.filter((r) => r.date === date).reduce((acc, r) => ({
-      complaints: acc.complaints + Number(r.complaints || 0),
-      requests: acc.requests + Number(r.requests || 0),
-      pending: acc.pending + Number(r.pendingRequests || 0)
-    }), { complaints: 0, requests: 0, pending: 0 }));
+    const dates = daily.map((row) => row.date);
     if (trendChart) trendChart.destroy();
     trendChart = new Chart(byId('trendLineChart'), {
       type: 'line',
-      data: { labels: dates, datasets: [
-        { label: 'Service Requests', data: totals.map((x) => x.requests), borderColor: '#1d4ed8', tension: 0.3 },
-        { label: 'Complaints', data: totals.map((x) => x.complaints), borderColor: '#d97706', tension: 0.3 },
-        { label: 'Pending Requests', data: totals.map((x) => x.pending), borderColor: '#dc2626', tension: 0.3 }
-      ] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+      data: {
+        labels: dates,
+        datasets: [
+          {
+            label: 'Complaints',
+            data: daily.map((row) => Number(row.complaints || 0)),
+            borderColor: '#d97706',
+            tension: 0.3
+          },
+          {
+            label: 'Critical & Immediate',
+            data: daily.map((row) => Number(row.criticalComplaints || 0)),
+            borderColor: '#dc2626',
+            tension: 0.3
+          },
+          {
+            label: 'Service Requests',
+            data: daily.map((row) => Number(row.requests || 0)),
+            borderColor: '#1d4ed8',
+            tension: 0.3
+          },
+          {
+            label: 'Pending Requests',
+            data: daily.map((row) => Number(row.pendingRequests || 0)),
+            borderColor: '#7c3aed',
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
     });
   }
 
@@ -131,7 +203,7 @@
         <td><span class="badge badge-critical">${Number(r.criticalComplaints || 0).toLocaleString()}</span></td>
         <td>${Number(r.requests || 0).toLocaleString()}</td>
         <td>${Number(r.pendingRequests || 0).toLocaleString()}</td>
-      </tr>`).join('') : '<tr><td colspan="6" class="empty-cell">No records for this barangay.</td></tr>';
+      </tr>`).join('') : '<tr><td colspan="6" class="empty-cell">No registered barangays found.</td></tr>';
   }
 
   async function loadAnalytics() {
@@ -150,11 +222,12 @@
       byId('kpiComplaints').textContent = Number(data.totalComplaints || 0).toLocaleString();
       byId('kpiRequests').textContent = Number(data.totalRequests || 0).toLocaleString();
       byId('kpiPending').textContent = Number(data.pendingRequests || 0).toLocaleString();
+      byId('kpiCritical').textContent = Number(data.totalCriticalComplaints || 0).toLocaleString();
       criticalRows = data.criticalComplaints || [];
       renderCharts(data);
       renderCriticalTable();
       renderBarangayTable(data.barangays || []);
-      setMessage(`Live database report: ${data.barangay || session.assignedBarangay} · ${startDate} to ${endDate}`);
+      setMessage(`Live citywide database report · ${data.barangayCount || (data.barangays || []).length} barangays · ${startDate} to ${endDate}`);
     } catch (error) {
       setMessage(error.message || 'Unable to load analytics.', true);
     } finally {
@@ -188,7 +261,7 @@
       window.location.replace('AnalyticsLogin.html');
       return;
     }
-    byId('userBadge').textContent = `${session.name || session.email} · ${session.assignedBarangay}`;
+    byId('userBadge').textContent = `${session.name || session.email} · All Barangays`;
     byId('logoutBtn').addEventListener('click', () => {
       sessionStorage.removeItem(SESSION_KEY);
       window.location.replace('AnalyticsLogin.html');

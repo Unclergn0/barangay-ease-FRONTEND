@@ -56,29 +56,59 @@
       <div class="panel"><div class="kpi-label">Total Complaints</div><div id="kpiComplaints" class="kpi-value">0</div></div>
       <div class="panel"><div class="kpi-label">Service Requests</div><div id="kpiRequests" class="kpi-value">0</div></div>
       <div class="panel"><div class="kpi-label">Pending Requests</div><div id="kpiPending" class="kpi-value">0</div></div>
+      <div class="panel"><div class="kpi-label">Critical &amp; Immediate Complaints</div><div id="kpiCritical" class="kpi-value">0</div></div>
+    </section>
+
+    <section class="panel analytics-chart-panel">
+      <div class="section-heading">
+        <div>
+          <h3>Complaints by Barangay</h3>
+          <p>Comparison of complaint volume across all registered barangays</p>
+        </div>
+      </div>
+      <div class="chart-box chart-box-large"><canvas id="complaintsByBarangayChart"></canvas></div>
+    </section>
+
+    <section class="panel analytics-chart-panel">
+      <div class="section-heading">
+        <div>
+          <h3>Service Requests by Barangay</h3>
+          <p>Comparison of service request volume across all registered barangays</p>
+        </div>
+      </div>
+      <div class="chart-box chart-box-large"><canvas id="requestsByBarangayChart"></canvas></div>
+    </section>
+
+    <section class="panel analytics-chart-panel">
+      <div class="section-heading">
+        <div>
+          <h3>Critical &amp; Immediate Complaints by Barangay</h3>
+          <p>High-priority complaint cases across all registered barangays</p>
+        </div>
+      </div>
+      <div class="chart-box chart-box-large"><canvas id="criticalByBarangayChart"></canvas></div>
     </section>
 
     <section class="charts-grid">
       <div class="panel">
-        <h3>Complaints, Requests &amp; Pending (Assigned Barangay)</h3>
-        <div class="chart-box"><canvas id="barangayBarChart"></canvas></div>
+        <h3>Complaint Priority Distribution</h3>
+        <div class="chart-box"><canvas id="priorityDoughnutChart"></canvas></div>
       </div>
       <div class="panel">
-        <h3>Complaint Priority Distribution</h3>
-        <div class="chart-box"><canvas id="residentsDoughnutChart"></canvas></div>
+        <h3>Daily Activity Trend — All Barangays</h3>
+        <div class="chart-box"><canvas id="trendLineChart"></canvas></div>
       </div>
     </section>
 
     <div id="analyticsMessage" class="status-message" role="status" aria-live="polite"></div>
 
     <section class="panel">
-      <h3>Daily Activity Trend</h3>
-      <div class="chart-box"><canvas id="trendLineChart"></canvas></div>
+      
     </section>
 
     <section class="panel">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-        <h3>Critical Complaints Queue</h3>
+        <h3>Critical &amp; Immediate Complaints Queue</h3>
         <input id="criticalSearch" type="search" placeholder="Search complaints..." style="padding:0.45rem 0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.8rem;" />
       </div>
       <div class="table-wrap">
@@ -94,7 +124,7 @@
     </section>
 
     <section class="panel">
-      <h3>Assigned Barangay Breakdown</h3>
+      <h3>All Barangays — Detailed Breakdown</h3>
       <div class="table-wrap">
         <table>
           <thead>

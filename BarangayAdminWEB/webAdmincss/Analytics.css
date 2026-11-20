@@ -384,3 +384,28 @@ button:disabled {
   .dashboard-main { padding: 1rem; }
   .auth-card { padding: 1.5rem 1.1rem; }
 }
+
+
+/* Citywide analytics: three full-width barangay comparison charts */
+.analytics-chart-panel h3 {
+  font-size: 1rem;
+  font-weight: 750;
+  color: var(--text-main);
+}
+
+.section-heading p {
+  color: var(--text-muted);
+  font-size: .78rem;
+  margin-top: .25rem;
+}
+
+.chart-box-large {
+  height: 390px;
+  margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .chart-box-large {
+    height: 340px;
+  }
+}
