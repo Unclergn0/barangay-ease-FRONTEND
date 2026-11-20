@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Muntinlupa City BarangayEase</title>
+    <link rel="stylesheet" href="webAdmincss/Analytics.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <h1>Muntinlupa City BarangayEase</h1>
+                <p>Analytics Report</p>
+            </div>
+
+            <div id="loginError" class="error-banner"></div>
+
+            <form id="loginForm">
+                <p class="login-notice">Sign in using your registered BarangayEase administrator account. Reports are automatically restricted to your assigned barangay.</p>
+
+                <div class="input-group">
+                    <label for="email">Work Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your work email" autocomplete="username"
+                        required />
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="Enter your password"
+                            autocomplete="current-password" required />
+                        <i class="fa-solid fa-eye toggle-password" data-target="password"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="loginBtn">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Login
+                </button>
+            </form>
+
+            <div style="text-align: center;">
+                <a href="./loginAdmin.html"
+                    style="color: var(--primary); font-size: 14px; text-decoration: none;">
+                    <i class="fas fa-user-shield"></i> Switch to Barangay Personnel Portal
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="webAdminjs/api-config.js"></script>
+    <script src="webAdminjs/AnalyticsLogin.js"></script>
+</body>
+
+</html>
