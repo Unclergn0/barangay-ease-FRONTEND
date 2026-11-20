@@ -312,17 +312,21 @@
                     </div>
                 </section>
 
-                <!-- CONTACT BARANGAY -->
+                <!-- CONTACT BARANGAY (DYNAMIC DIRECTORY) -->
                 <section id="contactBarangaySection" class="content-section hidden">
-                    <h2>Contact Barangay</h2>
-                    <p class="section-description">Send a non-emergency inquiry to your barangay office.</p>
-                    <form id="contactBarangayForm" class="dashboard-form" onsubmit="submitBarangayInquiry(event)">
-                        <div class="form-group"><label for="inquirySubject">Subject</label><input id="inquirySubject"
-                                required maxlength="120"></div>
-                        <div class="form-group"><label for="inquiryMessage">Message</label><textarea id="inquiryMessage"
-                                rows="5" required maxlength="3000"></textarea></div>
-                        <button type="submit" class="auth-action-btn">Send Inquiry</button>
-                    </form>
+                    <h2>Contact <span id="contactBrgyHeading">Barangay</span></h2>
+                    <p class="section-description">Official contact details and office hours for your barangay.</p>
+
+                    <div id="barangayContactContainer" class="profile-card" style="background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <!-- Dinamikong pupunuin ng loadBarangayContact() sa dashboard.js -->
+                    </div>
+
+                    <div class="profile-card" style="background: #fff8f8; border-left: 4px solid #c1121f; padding: 15px 20px; border-radius: 8px;">
+                        <h3 style="color: #c1121f; margin-bottom: 8px;"><i class="fas fa-phone-volume"></i> Muntinlupa City Emergency Hotlines</h3>
+                        <p style="margin: 4px 0;"><strong>Muntinlupa Emergency / Rescue (DDRMO):</strong> <a href="tel:0289254351">(02) 8925-4351</a> / <a href="tel:09175657891">0917-565-7891</a></p>
+                        <p style="margin: 4px 0;"><strong>PNP Muntinlupa:</strong> <a href="tel:0288622721">(02) 8862-2721</a> / <a href="tel:09985987928">0998-598-7928</a></p>
+                        <p style="margin: 4px 0;"><strong>BFP Muntinlupa (Fire):</strong> <a href="tel:0288422201">(02) 8842-2201</a> / <a href="tel:09665417513">0966-541-7513</a></p>
+                    </div>
                 </section>
 
                 <!-- FEEDBACK -->
@@ -352,7 +356,7 @@
 
     <!-- JavaScript Link -->
     <script src="webjs/api-config.js"></script>
-<script src="webjs/dashboard.js"></script>
+    <script src="webjs/dashboard.js"></script>
 </body>
 
 </html>

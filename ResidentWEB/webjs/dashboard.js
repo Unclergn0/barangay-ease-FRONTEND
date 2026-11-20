@@ -580,6 +580,10 @@ function showSection(sectionId) {
     if (sectionId === "complaintHistorySection") {
         fetchResidentComplaintHistory();
     }
+
+    if (sectionId === "contactBarangaySection") {
+        loadBarangayContact();
+    }
 }
 
 /* =========================================================
@@ -1773,55 +1777,129 @@ async function fetchResidentComplaintHistory() {
 }
 
 /* =========================================================
-   16. BARANGAY INQUIRY
+   16. DYNAMIC BARANGAY CONTACT DIRECTORY
    ========================================================= */
 
-async function submitBarangayInquiry(event) {
-    event.preventDefault();
+const barangayContacts = {
+    "Alabang": {
+        mobile: "0917-000-0001",
+        landline: "(02) 8842-0001",
+        email: "brgy.alabang@muntinlupacity.gov.ph",
+        address: "Barangay Alabang Hall, Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    },
+    "Ayala Alabang": {
+        mobile: "0917-000-0002",
+        landline: "(02) 8842-0002",
+        email: "brgy.ayalaalabang@muntinlupacity.gov.ph",
+        address: "Barangay Ayala Alabang Hall, Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    },
+    "Bayanan": {
+        mobile: "0917-000-0003",
+        landline: "(02) 8861-0003",
+        email: "brgy.bayanan@muntinlupacity.gov.ph",
+        address: "Barangay Bayanan Hall, National Rd., Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    },
+    "Buli": {
+        mobile: "0917-000-0004",
+        landline: "(02) 8838-0004",
+        email: "brgy.buli@muntinlupacity.gov.ph",
+        address: "Barangay Buli Hall, Manuel L. Quezon St., Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    },
+    "Cupang": {
+        mobile: "0917-000-0005",
+        landline: "(02) 8842-0005",
+        email: "brgy.cupang@muntinlupacity.gov.ph",
+        address: "Barangay Cupang Hall, Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    },
+    "Poblacion": {
+        mobile: "0917-000-0006",
+        landline: "(02) 8862-0006",
+        email: "brgy.poblacion@muntinlupacity.gov.ph",
+        address: "Barangay Poblacion Hall, Rizal St., Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    },
+    "Putatan": {
+        mobile: "0917-000-0007",
+        landline: "(02) 8861-0007",
+        email: "brgy.putatan@muntinlupacity.gov.ph",
+        address: "Barangay Putatan Hall, National Rd., Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    },
+    "Sucat": {
+        mobile: "0917-000-0008",
+        landline: "(02) 8825-0008",
+        email: "brgy.sucat@muntinlupacity.gov.ph",
+        address: "Barangay Sucat Hall, Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    },
+    "Tunasan": {
+        mobile: "0917-000-0009",
+        landline: "(02) 8861-0009",
+        email: "brgy.tunasan@muntinlupacity.gov.ph",
+        address: "Barangay Tunasan Hall, National Rd., Muntinlupa City",
+        hours: "Monday – Friday, 8:00 AM – 5:00 PM"
+    }
+};
 
-    const subject =
-        document.getElementById("inquirySubject")?.value.trim() || "";
+function loadBarangayContact() {
+    if (!resident) return;
 
-    const message =
-        document.getElementById("inquiryMessage")?.value.trim() || "";
+    const brgyName = String(resident.barangay || "").trim();
+    const container = document.getElementById("barangayContactContainer");
+    const heading = document.getElementById("contactBrgyHeading");
 
-    if (!subject || !message || !currentResidentId) {
-        alert(
-            "Please complete the form and sign in again if needed."
-        );
+    if (heading) {
+        heading.textContent = brgyName ? `Barangay ${brgyName}` : "Barangay";
+    }
+
+    if (!container) return;
+
+    const matchedKey = Object.keys(barangayContacts).find(
+        key => key.toLowerCase() === brgyName.toLowerCase()
+    );
+    const info = matchedKey ? barangayContacts[matchedKey] : null;
+
+    if (!info) {
+        container.innerHTML = `<p>No contact directory configured yet for <strong>${escapeResidentHtml(brgyName || "your barangay")}</strong>.</p>`;
         return;
     }
 
-    try {
-        const response = await fetch(
-            `${API_BASE_URL}/api/resident/inquiries`,
-            {
-                method: "POST",
-                headers: residentHeaders(true),
-                body: JSON.stringify({
-                    residentId: currentResidentId,
-                    subject,
-                    message,
-                    barangay: resident.barangay
-                })
-            }
-        );
+    const telMobile = info.mobile.replace(/[^+\d]/g, "");
+    const telLandline = info.landline.replace(/[^+\d]/g, "");
 
-        if (!response.ok) {
-            throw new Error(
-                await response.text() || `HTTP ${response.status}`
-            );
-        }
-
-        event.target.reset();
-
-        alert("Your inquiry was sent to the barangay office.");
-
-    } catch (error) {
-        console.error("Inquiry Error:", error);
-
-        alert(`Unable to send inquiry: ${error.message}`);
-    }
+    container.innerHTML = `
+        <h3 style="color: var(--primary); margin-bottom: 12px;">
+            <i class="fas fa-building"></i> Barangay ${escapeResidentHtml(matchedKey)} Office
+        </h3>
+        <p style="margin: 8px 0;">
+            <i class="fas fa-mobile-alt" style="width: 20px; color: var(--primary);"></i>
+            <strong>Mobile / Hotline:</strong>
+            <a href="tel:${escapeResidentHtml(telMobile)}">${escapeResidentHtml(info.mobile)}</a>
+        </p>
+        <p style="margin: 8px 0;">
+            <i class="fas fa-phone" style="width: 20px; color: var(--primary);"></i>
+            <strong>Landline:</strong>
+            <a href="tel:${escapeResidentHtml(telLandline)}">${escapeResidentHtml(info.landline)}</a>
+        </p>
+        <p style="margin: 8px 0;">
+            <i class="fas fa-envelope" style="width: 20px; color: var(--primary);"></i>
+            <strong>Official Email:</strong>
+            <a href="mailto:${escapeResidentHtml(info.email)}">${escapeResidentHtml(info.email)}</a>
+        </p>
+        <p style="margin: 8px 0;">
+            <i class="fas fa-map-marker-alt" style="width: 20px; color: var(--primary);"></i>
+            <strong>Barangay Hall Address:</strong> ${escapeResidentHtml(info.address)}
+        </p>
+        <p style="margin: 8px 0;">
+            <i class="fas fa-clock" style="width: 20px; color: var(--primary);"></i>
+            <strong>Office Hours:</strong> ${escapeResidentHtml(info.hours)}
+        </p>
+    `;
 }
 
 /* =========================================================
@@ -1902,6 +1980,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadTheme();
     loadLogo();
     loadProfile();
+    loadBarangayContact();
 
     showSection("serviceSection");
 
