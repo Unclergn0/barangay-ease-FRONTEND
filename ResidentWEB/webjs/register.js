@@ -23,6 +23,48 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // =====================================
+    // TERMS AND CONDITIONS MODAL
+    // =====================================
+
+    const openTerms = document.getElementById("openTerms");
+    const closeTerms = document.getElementById("closeTerms");
+    const termsModal = document.getElementById("termsModal");
+
+    function setTermsModalOpen(isOpen) {
+        if (!termsModal) return;
+
+        termsModal.style.display = isOpen ? "flex" : "none";
+        termsModal.classList.toggle("show", isOpen);
+        termsModal.classList.toggle("active", isOpen);
+    }
+
+    if (openTerms && termsModal) {
+        openTerms.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setTermsModalOpen(true);
+        });
+    }
+
+    if (closeTerms && termsModal) {
+        closeTerms.addEventListener("click", () => {
+            setTermsModalOpen(false);
+        });
+    }
+
+    window.addEventListener("click", (event) => {
+        if (event.target === termsModal) {
+            setTermsModalOpen(false);
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && termsModal) {
+            setTermsModalOpen(false);
+        }
+    });
+
+    // =====================================
     // SHOW / HIDE PASSWORD AND SECURITY PIN
     // =====================================
 
