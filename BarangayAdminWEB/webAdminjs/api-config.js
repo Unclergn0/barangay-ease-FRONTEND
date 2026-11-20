@@ -1,7 +1,34 @@
-/* BarangayEase API configuration. Set window.BE_API_BASE_URL before this file
-   in production (for example: https://api.example.gov.ph/api). */
+
+/* ==========================================
+   BARANGAYEASE API CONFIGURATION
+========================================== */
+
 (function (global) {
-  const configured = global.BE_API_BASE_URL;
-  const fallback = `${global.location.protocol}//${global.location.hostname}:8080/api`;
-  global.BE_API_BASE_URL = String(configured || fallback).replace(/\/+$/, "");
+    "use strict";
+
+    const LOCAL_API =
+        "http://localhost:8080/api";
+
+    const PRODUCTION_API =
+        "https://barangay-ease-backend.onrender.com/api";
+
+    // Check whether the frontend is running locally.
+    const hostname = global.location.hostname;
+
+    const isLocal =
+        hostname === "localhost" ||
+        hostname === "127.0.0.1";
+
+    // Explicit configuration takes priority.
+    const configured = global.BE_API_BASE_URL;
+
+    global.BE_API_BASE_URL = String(
+        configured || (isLocal ? LOCAL_API : PRODUCTION_API)
+    ).replace(/\/+$/, "");
+
+    console.info(
+        "[BarangayEase] Backend API:",
+        global.BE_API_BASE_URL
+    );
+
 })(window);
