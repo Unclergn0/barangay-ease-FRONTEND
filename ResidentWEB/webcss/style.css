@@ -33,6 +33,7 @@ body {
    (Register, Login, Forgot Password - Unaffected by Two-Tone)
    ========================================== */
 .container {
+    position: relative;
     width: 100%;
     min-height: calc(100vh - 80px);
     display: flex;
@@ -40,9 +41,27 @@ body {
     align-items: center;
     padding: 20px;
     background: #f8f9fa;
+    overflow: hidden;
+}
+
+.container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("images/muntinlupa-logo.png"); /* Palitan ng tamang path ng logo */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    opacity: 0.25;
+    filter: blur(8px);
+    transform: scale(1.06);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .form-card {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: 550px;
     background: #ffffff;
@@ -50,7 +69,6 @@ body {
     border-radius: 15px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     border-top: 5px solid #0A369D;
-    /* Standard neutral primary accent */
 }
 
 .logo-section {

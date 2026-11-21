@@ -47,18 +47,38 @@ body {
    ========================== */
 
 .auth-container {
+    position: relative;
     width: 100%;
-    min-height: calc(100vh - 85px);
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 25px 15px;
     background: #f8f9fa;
+    overflow: hidden;
+}
+
+.auth-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("images/muntinlupa-logo.png"); /* Palitan ng tamang path ng logo */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    opacity: 0.25;
+    filter: blur(8px);
+    transform: scale(1.06);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .auth-card {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: 550px;
+    margin: auto;
     background: #ffffff;
     padding: 30px;
     border-radius: 15px;
