@@ -35,7 +35,7 @@ body {
 .container {
     position: relative;
     width: 100%;
-    min-height: calc(100vh - 80px);
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -48,13 +48,12 @@ body {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url("../weblogo/MuntinlupaCity.png"); /* Palitan ng tamang path ng logo */
+    background-image: url("../weblogo/MuntinlupaCity.png");
     background-repeat: no-repeat;
     background-position: center;
-    background-size: cover;
-    opacity: 0.25;
-    filter: blur(8px);
-    transform: scale(1.06);
+    background-size: contain; /* Buong logo ang lalabas; o palitan ng 75vh auto kung gusto mo ng mas maliit */
+    opacity: 0.20;
+    filter: blur(6px);
     pointer-events: none;
     z-index: 0;
 }

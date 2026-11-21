@@ -62,13 +62,12 @@ body {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url("../webAdminlogo/MuntinlupaCity.png"); /* Palitan ng tamang path ng logo */
+    background-image: url("../webAdminlogo/MuntinlupaCity.png");
     background-repeat: no-repeat;
     background-position: center;
-    background-size: cover;
-    opacity: 0.25;
-    filter: blur(8px);
-    transform: scale(1.06);
+    background-size: contain;
+    opacity: 0.20;
+    filter: blur(6px);
     pointer-events: none;
     z-index: 0;
 }
