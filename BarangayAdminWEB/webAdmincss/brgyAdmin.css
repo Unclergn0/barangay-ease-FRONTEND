@@ -62,7 +62,7 @@ body {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url("images/muntinlupa-logo.png"); /* Palitan ng tamang path ng logo */
+    background-image: url("webAdminlogo/MuntinlupaCity.png"); /* Palitan ng tamang path ng logo */
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
