@@ -14,15 +14,50 @@ let requestsCache = [];
 let complaintsCache = [];
 
 const themes = {
-  "Alabang": { primary: "#0A369D", secondary: "#FF69B4" },
-  "Ayala Alabang": { primary: "#003366", secondary: "#FFD700" },
-  "Bayanan": { primary: "#2e7d32", secondary: "#FFFFFF" },
-  "Buli": { primary: "#FF8800", secondary: "#265ee0" },
-  "Cupang": { primary: "#C1121F", secondary: "#0A369D" },
-  "Poblacion": { primary: "#d4af37", secondary: "#0A369D" },
-  "Putatan": { primary: "#C1121F", secondary: "#FFFFFF" },
-  "Tunasan": { primary: "#e65100", secondary: "#FFFFFF" },
-  "Sucat": { primary: "#0A369D", secondary: "#FFD60A" }
+    Alabang: {
+        primary: "#0A369D",
+        secondary: "#FF69B4"
+    },
+
+    "Ayala Alabang": {
+        primary: "#003366",
+        secondary: "#FFD700"
+    },
+
+    Bayanan: {
+        primary: "#9ACD32",
+        secondary: "#FFFFFF"
+    },
+
+    Buli: {
+        primary: "#FF8800",
+        secondary: "#265ee0"
+    },
+
+    Cupang: {
+        primary: "#C1121F",
+        secondary: "#0A369D"
+    },
+
+    Poblacion: {
+        primary: "#0A369D",
+        secondary: "#FFD60A"
+    },
+
+    Putatan: {
+        primary: "#C1121F",
+        secondary: "#FFFFFF"
+    },
+
+    Tunasan: {
+        primary: "#FF8800",
+        secondary: "#FFFFFF"
+    },
+
+    Sucat: {
+        primary: "#0A369D",
+        secondary: "#FFFFFF"
+    }
 };
 const logos = {
   "Alabang": "webAdminlogo/BRGY.ALABANG.png",
