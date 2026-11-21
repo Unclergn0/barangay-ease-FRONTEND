@@ -245,47 +245,93 @@ async function requestMoreDocuments(id) {
 async function loadComplaints() {
   const normalTable = $("complaintsTable"), aiTable = $("aiComplaintsTable");
   if (!normalTable && !aiTable) return;
-  const header = `<tr><th>Complaint ID</th><th>Resident</th><th>Details</th><th>Evidence Files</th><th>Classification</th><th>Status</th><th>Actions</th></tr>`;
-  const aiHeader = `<tr><th>Complaint ID</th><th>Resident</th><th>Details</th><th>Evidence Files</th><th>AI Classification</th><th>AI Review</th><th>Status</th><th>Actions</th></tr>`;
-  const aiRows = items => items.length ? items.map(c => {
-    const id = Number(c.complaintId ?? c.id); const r = residentOf(c);
-    const resident = c.complainantName || `${r?.firstName || ""} ${r?.lastName || ""}`.trim() || "Resident";
-    const reviewStatus = c.aiReviewStatus || "PENDING";
-    const note = c.aiReviewNote ? `<br><small>Note: ${safe(c.aiReviewNote)}</small>` : "";
-    const evidence = attachmentButtons(c.files, "complaint");
-    return `<tr><td>#${safe(id)}</td><td>${safe(resident)}</td><td>${safe(c.complaintDetails || c.description || "")}</td><td>${evidence}</td><td>${safe((c.classificationType || "critical").toUpperCase())}<br><small>${safe(c.aiMessage || "")}</small></td><td>${safe(reviewStatus)}${note}</td><td>${safe(c.status || "Pending")}</td><td><button class="admin-action approve" onclick="reviewAiComplaint(${id},'ACCEPT')">Accept AI</button><button class="admin-action" onclick="reviewAiComplaint(${id},'UPDATE')">Change Category</button><button class="admin-action reject" onclick="reviewAiComplaint(${id},'CANCEL')">Cancel AI</button></td></tr>`;
-  }).join("") : `<tr><td colspan="8" class="empty-row">No Critical AI complaints found.</td></tr>`;
+
+  const header = `<tr><th>Complaint ID</th><th>Resident</th><th>Complaint Title</th><th>Details</th><th>Evidence Files</th><th>Classification</th><th>Status</th><th>Actions</th></tr>`;
+  const aiHeader = `<tr><th>Complaint ID</th><th>Resident</th><th>Complaint Title</th><th>Details</th><th>Evidence Files</th><th>AI Classification</th><th>AI Review</th><th>Status</th><th>Actions</th></tr>`;
+
   try {
     const data = await api("/api/complaints");
     const all = Array.isArray(data) ? data : [];
     complaintsCache = all;
-    const critical = complaintsCache.filter(c => normalize(c.classificationType) === "critical"
-      && normalize(c.aiReviewStatus).toUpperCase() === "PENDING");
-    const regular = complaintsCache.filter(c => !(normalize(c.classificationType) === "critical"
-      && normalize(c.aiReviewStatus).toUpperCase() === "PENDING"));
+
+    // Keep every critical complaint in the AI table, including reviewed
+    // ACCEPTED and REJECTED records. Do not hide a complaint after review.
+    const critical = complaintsCache.filter(c => normalize(c.classificationType) === "critical");
+
+    // Non-critical complaints plus reviewed critical complaints appear in
+    // Resident Complaints. Pending critical cases remain in the AI queue.
+    const regular = complaintsCache.filter(c =>
+      normalize(c.classificationType) !== "critical" ||
+      normalize(c.aiReviewStatus).toUpperCase() !== "PENDING"
+    );
+
+    const aiRows = critical.length ? critical.map(c => {
+      const id = Number(c.complaintId ?? c.id);
+      const r = residentOf(c);
+      const resident = c.complainantName || `${r?.firstName || ""} ${r?.lastName || ""}`.trim() || "Resident";
+      const reviewStatus = normalize(c.aiReviewStatus || "PENDING").toUpperCase();
+      const note = c.aiReviewNote ? `<br><small>Note: ${safe(c.aiReviewNote)}</small>` : "";
+      const evidence = attachmentButtons(c.files, "complaint");
+      const pending = reviewStatus === "PENDING";
+      const actions = pending
+        ? `<button class="admin-action" onclick="viewAiComplaint(${id})">Review</button><button class="admin-action approve" onclick="reviewAiComplaint(${id},'ACCEPT')">Accept</button><button class="admin-action reject" onclick="reviewAiComplaint(${id},'REJECT')">Reject</button>`
+        : `<button class="admin-action" onclick="viewAiComplaint(${id})">View Review</button>`;
+      return `<tr><td>#${safe(id)}</td><td>${safe(resident)}</td><td>${safe(c.title || c.complaintTitle || "Untitled complaint")}</td><td>${safe(c.complaintDetails || c.description || "")}</td><td>${evidence}</td><td>${safe((c.classificationType || "critical").toUpperCase())}<br><small>${safe(c.aiMessage || "")}</small></td><td>${safe(reviewStatus)}${note}</td><td>${safe(c.status || "Pending")}</td><td>${actions}</td></tr>`;
+    }).join("") : `<tr><td colspan="9" class="empty-row">No Critical AI complaints found.</td></tr>`;
+
     const rows = (items, empty) => items.length ? items.map(c => {
-      const id = Number(c.complaintId ?? c.id); const r = residentOf(c);
+      const id = Number(c.complaintId ?? c.id);
+      const r = residentOf(c);
       const resident = c.complainantName || `${r?.firstName || ""} ${r?.lastName || ""}`.trim() || "Resident";
       const evidence = attachmentButtons(c.files, "complaint");
-      return `<tr><td>#${safe(id)}</td><td>${safe(resident)}</td><td>${safe(c.complaintDetails || c.description || "")}</td><td>${evidence}</td><td>${safe((c.classificationType || "mild").toUpperCase())}</td><td>${safe(c.status || "Pending")}</td><td><button class="admin-action" onclick="changeComplaintStatus(${id},'In Progress')">Process</button><button class="admin-action approve" onclick="changeComplaintStatus(${id},'Resolved')">Resolve</button></td></tr>`;
-    }).join("") : `<tr><td colspan="7" class="empty-row">${empty}</td></tr>`;
-    if (normalTable) normalTable.innerHTML = header + rows(regular, "No Mild or Immediate complaints found.");
-    if (aiTable) aiTable.innerHTML = aiHeader + aiRows(critical);
+      const isReviewedCritical = normalize(c.classificationType) === "critical";
+      const actions = isReviewedCritical
+        ? `<button class="admin-action" onclick="viewAiComplaint(${id})">View Review</button>`
+        : `<button class="admin-action" onclick="changeComplaintStatus(${id},'In Progress')">Process</button><button class="admin-action approve" onclick="changeComplaintStatus(${id},'Resolved')">Resolve</button>`;
+      return `<tr><td>#${safe(id)}</td><td>${safe(resident)}</td><td>${safe(c.title || c.complaintTitle || "Untitled complaint")}</td><td>${safe(c.complaintDetails || c.description || "")}</td><td>${evidence}</td><td>${safe((c.classificationType || "mild").toUpperCase())}</td><td>${safe(c.status || "Pending")}</td><td>${actions}</td></tr>`;
+    }).join("") : `<tr><td colspan="8" class="empty-row">${empty}</td></tr>`;
+
+    if (normalTable) normalTable.innerHTML = header + rows(regular, "No Mild, Immediate, or reviewed critical complaints found.");
+    if (aiTable) aiTable.innerHTML = aiHeader + aiRows;
     setText("dashTotalComplaints", complaintsCache.length);
     setText("dashCriticalComplaints", critical.length);
-  } catch (e) { if (normalTable) showTableError(normalTable, 7, e); if (aiTable) showTableError(aiTable, 8, e); }
+  } catch (e) {
+    if (normalTable) showTableError(normalTable, 8, e);
+    if (aiTable) showTableError(aiTable, 9, e);
+  }
 }
+
+function viewAiComplaint(id) {
+  const complaint = complaintsCache.find(c => Number(c.complaintId ?? c.id) === Number(id));
+  if (!complaint) { alert("Complaint details are not available. Refresh the list and try again."); return; }
+  const resident = complaint.complainantName || "Resident";
+  const title = complaint.title || complaint.complaintTitle || "Untitled complaint";
+  const details = complaint.complaintDetails || complaint.description || "No description provided.";
+  const review = complaint.aiReviewStatus || "PENDING";
+  const note = complaint.aiReviewNote || "No admin review note.";
+  alert(`COMPLAINT #${id}
+
+Title: ${title}
+Resident: ${resident}
+Classification: ${(complaint.classificationType || "critical").toUpperCase()}
+AI Review: ${review}
+Status: ${complaint.status || "Pending"}
+
+Details:
+${details}
+
+AI Message:
+${complaint.aiMessage || "No AI message."}
+
+Admin Note:
+${note}`);
+}
+
 async function reviewAiComplaint(id, action) {
   if (!Number.isFinite(id)) return;
   const body = { action };
-  if (action === "UPDATE") {
-    const choice = (prompt("New category for complaint #" + id + ": type mild, immediate, or critical") || "").trim().toLowerCase();
-    if (!choice) return;
-    if (!["mild", "immediate", "critical"].includes(choice)) { alert("Category must be mild, immediate, or critical."); return; }
-    body.classification = choice;
-  } else if (action === "CANCEL") {
-    if (!confirm("Cancel the AI classification for complaint #" + id + "? The complaint is kept and not deleted.")) return;
-  }
+  const actionLabel = action === "ACCEPT" ? "accept" : "reject";
+  if (!confirm(`Are you sure you want to ${actionLabel} AI complaint #${id}? The complaint record will remain visible.`)) return;
   const note = prompt("Optional note for this review (you can leave it empty):");
   if (note === null) return;
   if (note.trim()) body.note = note.trim();
@@ -295,8 +341,9 @@ async function reviewAiComplaint(id, action) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
-    await loadComplaints(); renderAnalytics();
-    alert(`AI review saved for complaint #${id}.`);
+    await loadComplaints();
+    renderAnalytics();
+    alert(`AI complaint #${id} was ${actionLabel}ed. Its record remains in the AI Complaints list.`);
   } catch (e) { console.error(e); alert(`Unable to save AI review: ${e.message}`); }
 }
 async function changeComplaintStatus(id, status) {
@@ -502,11 +549,11 @@ function renderReports() {
       }).join("") : `<tr><td colspan="5" class="empty-row">No service requests match the selected filters.</td></tr>`);
   }
   if (complaintTable) {
-    complaintTable.innerHTML = `<tr><th>ID</th><th>Resident</th><th>Classification</th><th>Status</th><th>Date</th></tr>` +
+    complaintTable.innerHTML = `<tr><th>ID</th><th>Resident</th><th>Complaint Title</th><th>Classification</th><th>Status</th><th>Date</th></tr>` +
       (comp.length ? comp.map(c => {
         const resident = residentOf(c);
-        return `<tr><td>#${safe(c.complaintId ?? c.id ?? "N/A")}</td><td>${safe(c.complainantName || `${resident?.firstName || ""} ${resident?.lastName || ""}`.trim() || "Resident")}</td><td>${safe(c.classificationType || "Unclassified")}</td><td>${safe(c.status || "Pending")}</td><td>${safe(recordDate(c)?.toLocaleDateString() || "N/A")}</td></tr>`;
-      }).join("") : `<tr><td colspan="5" class="empty-row">No complaints match the selected filters.</td></tr>`);
+        return `<tr><td>#${safe(c.complaintId ?? c.id ?? "N/A")}</td><td>${safe(c.complainantName || `${resident?.firstName || ""} ${resident?.lastName || ""}`.trim() || "Resident")}</td><td>${safe(c.title || c.complaintTitle || "Untitled complaint")}</td><td>${safe(c.classificationType || "Unclassified")}</td><td>${safe(c.status || "Pending")}</td><td>${safe(recordDate(c)?.toLocaleDateString() || "N/A")}</td></tr>`;
+      }).join("") : `<tr><td colspan="6" class="empty-row">No complaints match the selected filters.</td></tr>`);
   }
 }
 function applyReportFilters() { renderReports(); }
