@@ -1673,6 +1673,31 @@ td {
 .transaction-detail-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: var(--shadow); }
 
 
+/* Switch Buttons */
+.portal-switch-wrap {
+    text-align: center;
+    margin-top: 16px;
+}
 
-BarangayAdminWEB
-registerAdmin.html
+.portal-switch-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border: 1.5px solid var(--primary, #0A369D);
+    border-radius: 10px;
+    color: var(--primary, #0A369D);
+    background: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.portal-switch-btn:hover {
+    background: var(--primary, #0A369D);
+    color: #ffffff;
+}

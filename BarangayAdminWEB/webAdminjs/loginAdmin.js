@@ -1,27 +1,15 @@
-
 /* ==========================================
    BARANGAYEASE ADMIN LOGIN
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-
     const form = document.getElementById("loginForm");
     const loginBtn = document.getElementById("loginBtn");
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-
-    // ==========================================
-    // BACKEND CONFIGURATION
-    // ==========================================
-
-    const BACKEND_BASE =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-
-            ? "http://localhost:8080"
-
-            : "https://barangay-ease-backend.onrender.com";
+    // Dynamic Hostname Detection para sa Admin Login
+    const BACKEND_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:8080'
+        : 'https://barangay-ease-backend.onrender.com';
 
     const API_URL = `${BACKEND_BASE}/api/admins/login`;
 
@@ -30,16 +18,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // ==========================================
-    // ADMIN LOGIN
-    // ==========================================
-
     form.addEventListener("submit", async (event) => {
-
         event.preventDefault();
 
-        const email = emailInput?.value.trim();
-        const password = passwordInput?.value;
+        const email = document.getElementById("email")?.value.trim();
+        const password = document.getElementById("password")?.value;
 
         if (!email || !password) {
             alert("Please enter your email and password.");
@@ -47,205 +30,77 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-
-            // DISABLE LOGIN BUTTON
             if (loginBtn) {
                 loginBtn.disabled = true;
-                loginBtn.innerHTML =
-                    '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
+                loginBtn.textContent = "Logging in...";
             }
 
             const response = await fetch(API_URL, {
-
                 method: "POST",
-
                 headers: {
                     "Content-Type": "application/json"
                 },
-
-                body: JSON.stringify({
-                    email: email,
-                    password: password
-                })
-
+                body: JSON.stringify({ email, password })
             });
 
-            // HANDLE SERVER RESPONSE
-            let data;
-
-            try {
-                data = await response.json();
-            } catch {
-                throw new Error("Invalid response from server.");
-            }
+            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(
-                    data.message || "Invalid email or password."
-                );
+                throw new Error(data.message || "Invalid email or password.");
             }
-
-            // ==========================================
-            // VALIDATE LOGIN RESPONSE
-            // ==========================================
 
             if (!data.token || !data.barangay || !data.barangayId) {
-                throw new Error(
-                    "Incomplete admin login information from server."
-                );
+                throw new Error("Incomplete admin login information from server.");
             }
 
-            // ==========================================
-            // CREATE ADMIN SESSION
-            // ==========================================
-
             const adminSession = {
-
                 token: data.token,
-
                 adminId: data.adminId,
-
-                fullname:
-                    data.fullname ||
-                    data.username ||
-                    "",
-
-                username:
-                    data.username ||
-                    data.fullname ||
-                    "",
-
-                email:
-                    data.email ||
-                    email,
-
+                fullname: data.fullname || data.username || "",
+                username: data.username || data.fullname || "",
+                email: data.email || email,
                 barangay: data.barangay,
-
                 barangayId: data.barangayId,
-
                 role: data.role || ""
-
             };
 
-            // ==========================================
-            // SAVE ADMIN SESSION
-            // ==========================================
-
-            localStorage.setItem(
-                "loggedAdmin",
-                JSON.stringify(adminSession)
-            );
+            localStorage.setItem("loggedAdmin", JSON.stringify(adminSession));
 
             localStorage.setItem("token", data.token);
-
             localStorage.setItem("role", "ADMIN");
-
-            localStorage.setItem(
-                "adminRole",
-                adminSession.role
-            );
-
-            localStorage.setItem(
-                "username",
-                adminSession.username
-            );
-
-            localStorage.setItem(
-                "email",
-                adminSession.email
-            );
-
-            localStorage.setItem(
-                "barangay",
-                adminSession.barangay
-            );
-
-            localStorage.setItem(
-                "barangayId",
-                String(adminSession.barangayId)
-            );
-
-            localStorage.setItem(
-                "adminId",
-                String(adminSession.adminId)
-            );
-
-            // ==========================================
-            // SUCCESS
-            // ==========================================
+            localStorage.setItem("adminRole", adminSession.role);
+            localStorage.setItem("username", adminSession.username);
+            localStorage.setItem("email", adminSession.email);
+            localStorage.setItem("barangay", adminSession.barangay);
+            localStorage.setItem("barangayId", String(adminSession.barangayId));
+            localStorage.setItem("adminId", String(adminSession.adminId));
 
             alert("Login successful!");
 
             window.location.href = "BarangayAdmin.html";
 
         } catch (error) {
-
             console.error("Admin login error:", error);
-
-            alert(
-                error.message ||
-                "Unable to connect to the server."
-            );
-
+            alert(error.message || "Unable to connect to the server.");
         } finally {
-
-            // RESTORE LOGIN BUTTON
             if (loginBtn) {
-
                 loginBtn.disabled = false;
-
-                loginBtn.innerHTML =
-                    '<i class="fa-solid fa-right-to-bracket"></i> Login';
-
+                loginBtn.textContent = "Login";
             }
-
         }
-
     });
 
-    // ==========================================
-    // SHOW / HIDE PASSWORD
-    // ==========================================
-
+    // Show / hide password
     document.querySelectorAll(".toggle-password").forEach(icon => {
-
-        const togglePassword = () => {
-
-            const targetId = icon.dataset.target || "password";
-
-            const input = document.getElementById(targetId);
-
+        icon.addEventListener("click", () => {
+            const input = document.getElementById("password");
             if (!input) return;
 
             const isPassword = input.type === "password";
-
             input.type = isPassword ? "text" : "password";
 
-            icon.classList.toggle("fa-eye", !isPassword);
-
-            icon.classList.toggle("fa-eye-slash", isPassword);
-
-            icon.setAttribute(
-                "aria-label",
-                isPassword ? "Hide password" : "Show password"
-            );
-
-        };
-
-        icon.addEventListener("click", togglePassword);
-
-        icon.addEventListener("keydown", event => {
-
-            if (event.key === "Enter" || event.key === " ") {
-
-                event.preventDefault();
-
-                togglePassword();
-
-            }
-
+            icon.classList.toggle("fa-eye");
+            icon.classList.toggle("fa-eye-slash");
         });
-
     });
-
 });
