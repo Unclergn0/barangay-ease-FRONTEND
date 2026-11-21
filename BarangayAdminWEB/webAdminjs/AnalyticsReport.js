@@ -13,6 +13,7 @@
   let criticalChart = null;
   let priorityChart = null;
   let trendChart = null;
+  let ratingsChart = null;
   let criticalRows = [];
 
   const byId = (id) => document.getElementById(id);
@@ -115,6 +116,31 @@
       'Critical & Immediate Complaints', '#dc2626', criticalChart
     );
 
+    if (ratingsChart) ratingsChart.destroy();
+    ratingsChart = new Chart(byId('ratingsByBarangayChart'), {
+      type: 'bar',
+      data: {
+        labels: rows.map((row) => row.barangay),
+        datasets: [{
+          label: 'Average rating (out of 5)',
+          data: rows.map((row) => Number(row.averageRating || 0)),
+          backgroundColor: '#0f766e',
+          borderRadius: 6,
+          maxBarThickness: 34
+        }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: {
+            label: (context) => `${Number(context.raw || 0).toFixed(2)} / 5 · ${Number(rows[context.dataIndex]?.ratingCount || 0).toLocaleString()} ratings`
+          } }
+        },
+        scales: { x: { min: 0, max: 5, ticks: { stepSize: 1 } }, y: { ticks: { autoSkip: false } } }
+      }
+    });
+
     if (priorityChart) priorityChart.destroy();
     const priorities = data.priorityDistribution || { mild: 0, immediate: 0, critical: 0 };
     priorityChart = new Chart(byId('priorityDoughnutChart'), {
@@ -203,7 +229,14 @@
         <td><span class="badge badge-critical">${Number(r.criticalComplaints || 0).toLocaleString()}</span></td>
         <td>${Number(r.requests || 0).toLocaleString()}</td>
         <td>${Number(r.pendingRequests || 0).toLocaleString()}</td>
-      </tr>`).join('') : '<tr><td colspan="6" class="empty-cell">No registered barangays found.</td></tr>';
+        <td><strong>${Number(r.averageRating || 0).toFixed(2)} / 5</strong></td>
+        <td>${Number(r.ratingCount || 0).toLocaleString()}</td>
+        <td>${Number(r.rating1Star || 0).toLocaleString()}</td>
+        <td>${Number(r.rating2Star || 0).toLocaleString()}</td>
+        <td>${Number(r.rating3Star || 0).toLocaleString()}</td>
+        <td>${Number(r.rating4Star || 0).toLocaleString()}</td>
+        <td>${Number(r.rating5Star || 0).toLocaleString()}</td>
+      </tr>`).join('') : '<tr><td colspan="13" class="empty-cell">No registered barangays found.</td></tr>';
   }
 
   async function loadAnalytics() {
@@ -223,6 +256,8 @@
       byId('kpiRequests').textContent = Number(data.totalRequests || 0).toLocaleString();
       byId('kpiPending').textContent = Number(data.pendingRequests || 0).toLocaleString();
       byId('kpiCritical').textContent = Number(data.totalCriticalComplaints || 0).toLocaleString();
+      byId('kpiAverageRating').textContent = `${Number(data.averageRating || 0).toFixed(2)} / 5`;
+      byId('kpiTotalRatings').textContent = Number(data.totalRatings || 0).toLocaleString();
       criticalRows = data.criticalComplaints || [];
       renderCharts(data);
       renderCriticalTable();

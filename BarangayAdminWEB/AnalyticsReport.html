@@ -89,6 +89,20 @@
       <div class="chart-box chart-box-large"><canvas id="criticalByBarangayChart"></canvas></div>
     </section>
 
+    <section class="panel analytics-chart-panel">
+      <div class="section-heading">
+        <div>
+          <h3>Resident Satisfaction Ratings by Barangay</h3>
+          <p>Live average rating from resident feedback within the selected date range</p>
+        </div>
+      </div>
+      <div class="chart-box chart-box-large"><canvas id="ratingsByBarangayChart"></canvas></div>
+      <div class="kpi-grid" style="margin-top:1rem;">
+        <div class="panel"><div class="kpi-label">Overall Average Rating</div><div id="kpiAverageRating" class="kpi-value">0.00 / 5</div></div>
+        <div class="panel"><div class="kpi-label">Total Resident Ratings</div><div id="kpiTotalRatings" class="kpi-value">0</div></div>
+      </div>
+    </section>
+
     <section class="charts-grid">
       <div class="panel">
         <h3>Complaint Priority Distribution</h3>
@@ -129,7 +143,7 @@
         <table>
           <thead>
             <tr>
-              <th>Barangay</th><th>Residents</th><th>Complaints</th><th>Critical</th><th>Requests</th><th>Pending</th>
+              <th>Barangay</th><th>Residents</th><th>Complaints</th><th>Critical</th><th>Requests</th><th>Pending</th><th>Avg. Rating</th><th>Rating Count</th><th>1★</th><th>2★</th><th>3★</th><th>4★</th><th>5★</th>
             </tr>
           </thead>
           <tbody id="barangayTbody"></tbody>
