@@ -1675,6 +1675,7 @@ td {
 
 /* Switch Buttons */
 .portal-switch-wrap {
+    width: 100%;
     text-align: center;
     margin-top: 16px;
 }
