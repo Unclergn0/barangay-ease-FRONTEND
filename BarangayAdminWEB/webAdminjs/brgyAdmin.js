@@ -429,6 +429,84 @@ async function loadComplaints() {
   }
 }
 
+
+function viewAiComplaint(id) {
+  const complaint = complaintsCache.find(
+    c => Number(c.complaintId ?? c.id) === Number(id)
+  );
+
+  if (!complaint) {
+    alert("Complaint details are not available. Refresh the list and try again.");
+    return;
+  }
+
+  const resident = complaint.complainantName || "Resident";
+  const title = complaint.title || complaint.complaintTitle || "Untitled complaint";
+  const details = complaint.complaintDetails || complaint.description || "No description provided.";
+  const review = complaint.aiReviewStatus || "PENDING";
+  const note = complaint.aiReviewNote || "No admin review note.";
+
+  alert(`COMPLAINT #${id}
+
+Title: ${title}
+Resident: ${resident}
+Classification: ${(complaint.classificationType || "critical").toUpperCase()}
+AI Review: ${review}
+Status: ${complaint.status || "Pending"}
+
+Details:
+${details}
+
+AI Message:
+${complaint.aiMessage || "No AI message."}
+
+Admin Note:
+${note}`);
+}
+
+
+async function reviewAiComplaint(id, action) {
+  if (!Number.isFinite(Number(id))) return;
+
+  const body = { action };
+  const actionLabel = action === "ACCEPT" ? "accept" : "reject";
+
+  if (!confirm(
+    `Are you sure you want to ${actionLabel} AI complaint #${id}? The complaint record will remain visible.`
+  )) {
+    return;
+  }
+
+  const note = prompt("Optional note for this review (you can leave it empty):");
+
+  if (note === null) return;
+
+  if (note.trim()) {
+    body.note = note.trim();
+  }
+
+  try {
+    await api(`/api/complaints/admin/ai-review/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+
+    await loadComplaints();
+    renderAnalytics();
+
+    alert(
+      `AI complaint #${id} was ${actionLabel}ed. Its record remains in the AI Complaints list.`
+    );
+
+  } catch (e) {
+    console.error(e);
+    alert(`Unable to save AI review: ${e.message}`);
+  }
+}
+
 async function changeComplaintStatus(id, status) {
   if (!Number.isFinite(id) || !confirm(`Change complaint #${id} status to ${status}?`)) return;
   try {
