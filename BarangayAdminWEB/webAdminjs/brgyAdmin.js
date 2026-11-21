@@ -12,6 +12,8 @@ let currentBarangay = "";
 let residentsCache = [];
 let requestsCache = [];
 let complaintsCache = [];
+let feedbackSummaryCache = null;
+let feedbackRowsCache = [];
 
 const themes = {
     Alabang: {
@@ -127,7 +129,7 @@ async function initializeAdminDashboard() {
 }
 
 async function refreshDashboard() {
-  await Promise.allSettled([loadResidents(), loadRequests(), loadComplaints(), loadAdminNotifications()]);
+  await Promise.allSettled([loadResidents(), loadRequests(), loadComplaints(), loadAdminNotifications(), loadDashboardFeedback()]);
   renderAnalytics();
 }
 async function loadResidents() {
@@ -304,6 +306,98 @@ async function changeComplaintStatus(id, status) {
     await loadComplaints(); renderAnalytics(); alert(`Complaint #${id} updated to ${status}.`);
   } catch (e) { console.error(e); alert(`Unable to update complaint: ${e.message}`); }
 }
+async function loadDashboardFeedback() {
+  try {
+    const summary = await api("/api/admin/feedback/summary");
+    feedbackSummaryCache = summary || null;
+    renderDashboardFeedback(summary);
+  } catch (error) {
+    console.error("Assigned barangay feedback summary error:", error);
+    setText("dashAverageRating", "N/A");
+    setText("dashTotalRatings", "Unavailable");
+    const stars = $("dashRatingStars");
+    if (stars) stars.textContent = "Ratings API unavailable";
+  }
+}
+
+function renderDashboardFeedback(summary) {
+  if (!summary) return;
+  const average = Number(summary.averageRating || 0);
+  setText("dashAverageRating", Number.isFinite(average) && Number(summary.totalRatings) > 0 ? average.toFixed(2) : "0.00");
+  setText("dashTotalRatings", Number(summary.totalRatings || 0).toLocaleString());
+  const stars = $("dashRatingStars");
+  if (stars) stars.textContent = "★".repeat(Math.round(average)) + "☆".repeat(5 - Math.round(average));
+}
+
+function reportDateQuery() {
+  const from = $("reportDateFrom")?.value || "";
+  const to = $("reportDateTo")?.value || "";
+  if (from && to && from > to) throw new Error("The From date cannot be later than the To date.");
+  if (Boolean(from) !== Boolean(to)) throw new Error("Select both From and To dates to filter resident ratings.");
+  return from ? `?startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}` : "";
+}
+
+async function loadReportFeedback() {
+  const table = $("reportRatingsTable");
+  const query = reportDateQuery();
+  setText("ratingReportBarangay", currentBarangay);
+  if (table) table.innerHTML = '<tr><td>Loading resident ratings...</td></tr>';
+  try {
+    const [summary, rows] = await Promise.all([
+      api(`/api/admin/feedback/summary${query}`),
+      api(`/api/admin/feedback${query}`)
+    ]);
+    feedbackSummaryCache = summary || null;
+    feedbackRowsCache = Array.isArray(rows) ? rows : [];
+    renderDashboardFeedback(summary);
+    setText("reportAverageRating", Number(summary?.totalRatings || 0) ? `${Number(summary.averageRating || 0).toFixed(2)} / 5` : "0.00 / 5");
+    setText("reportTotalRatings", Number(summary?.totalRatings || 0).toLocaleString());
+    setText("reportCommentCount", Number(summary?.commentCount || 0).toLocaleString());
+    const distribution = summary?.ratingDistribution || {};
+    renderBarChart("reportRatingDistribution", {
+      "5 Stars": Number(distribution["5Star"] || 0),
+      "4 Stars": Number(distribution["4Star"] || 0),
+      "3 Stars": Number(distribution["3Star"] || 0),
+      "2 Stars": Number(distribution["2Star"] || 0),
+      "1 Star": Number(distribution["1Star"] || 0)
+    });
+    renderFeedbackRows(feedbackRowsCache);
+    renderRecentFeedback(summary?.recentFeedback || feedbackRowsCache.slice(0, 10));
+  } catch (error) {
+    console.error("Assigned barangay report feedback error:", error);
+    setText("reportAverageRating", "Unavailable");
+    setText("reportTotalRatings", "--");
+    setText("reportCommentCount", "--");
+    const chart = $("reportRatingDistribution");
+    if (chart) chart.innerHTML = `<p class="chart-empty">${safe(error.message || "Unable to load ratings.")}</p>`;
+    const recent = $("reportRecentFeedback");
+    if (recent) recent.innerHTML = `<p class="chart-empty">Resident feedback could not be loaded. Confirm that the updated backend is deployed.</p>`;
+    if (table) table.innerHTML = `<tr><td class="empty-row">Unable to load assigned barangay ratings.</td></tr>`;
+  }
+}
+
+function renderFeedbackRows(rows) {
+  const table = $("reportRatingsTable");
+  if (!table) return;
+  table.innerHTML = `<tr><th>Resident</th><th>Rating</th><th>Comment</th><th>Date Submitted</th></tr>` +
+    (rows.length ? rows.map(row => `<tr><td>${safe(row.residentName || `Resident #${row.residentId ?? "N/A"}`)}</td><td><span class="rating-stars">${"★".repeat(Math.max(0, Math.min(5, Number(row.rating) || 0)))}${"☆".repeat(5 - Math.max(0, Math.min(5, Number(row.rating) || 0)))}</span> (${safe(row.rating)}/5)</td><td>${safe(row.comment || "No comment")}</td><td>${safe(formatFeedbackDate(row.createdAt))}</td></tr>`).join("") : `<tr><td colspan="4" class="empty-row">No resident ratings found for this barangay and date range.</td></tr>`);
+}
+
+function renderRecentFeedback(rows) {
+  const host = $("reportRecentFeedback");
+  if (!host) return;
+  host.innerHTML = rows.length ? rows.slice(0, 10).map(row => {
+    const rating = Math.max(0, Math.min(5, Number(row.rating) || 0));
+    return `<article class="feedback-item"><div class="feedback-item-top"><strong>${safe(row.residentName || `Resident #${row.residentId ?? "N/A"}`)}</strong><span class="rating-stars">${"★".repeat(rating)}${"☆".repeat(5-rating)}</span></div><p>${safe(row.comment || "No written feedback provided.")}</p><small>${safe(formatFeedbackDate(row.createdAt))}</small></article>`;
+  }).join("") : '<p class="chart-empty">No resident feedback comments yet.</p>';
+}
+
+function formatFeedbackDate(value) {
+  if (!value) return "Date unavailable";
+  const date = Array.isArray(value) ? new Date(value[0], (value[1] || 1)-1, value[2] || 1, value[3] || 0, value[4] || 0) : new Date(value);
+  return Number.isNaN(date.getTime()) ? "Date unavailable" : date.toLocaleString();
+}
+
 function renderAnalytics() {
   const pending = requestsCache.filter(r => normalize(r.status || "Pending") === "pending").length;
   const resolved = complaintsCache.filter(c => normalize(c.status) === "resolved").length;
@@ -374,6 +468,7 @@ function getReportData() {
   };
 }
 function renderReports() {
+  loadReportFeedback();
   let data;
   try { data = getReportData(); }
   catch (error) {
@@ -435,6 +530,7 @@ function exportAnalyticsReport() {
     rows.push(["Complaint", c.complaintId ?? c.id ?? "", c.complainantName || `${resident?.firstName || ""} ${resident?.lastName || ""}`.trim(),
       c.complaintDetails || c.description || "", c.classificationType || "", c.status || "Pending", recordDate(c)?.toISOString() || ""]);
   });
+  feedbackRowsCache.forEach(f => rows.push(["Resident Rating", f.feedbackId ?? "", f.residentName || `Resident #${f.residentId ?? ""}`, `${f.rating || ""}/5 - ${f.comment || ""}`, "", "Submitted", formatFeedbackDate(f.createdAt)]));
   const csv = rows.map(row => row.map(value => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);

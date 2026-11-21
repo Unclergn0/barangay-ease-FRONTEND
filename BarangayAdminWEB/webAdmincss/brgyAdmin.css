@@ -1027,54 +1027,59 @@ table tr:hover {
     }
 }
 
-/* ANALYTICS DASHBOARD LINKS */
+/* PORTAL NAVIGATION */
+
 .portal-links {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
     width: 100%;
-    margin-top: 20px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border, #E0E0E0);
+    box-sizing: border-box;
 }
 
 .portal-link {
-    width: 100%;
-    box-sizing: border-box;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 8px;
-    padding: 12px 16px;
+    width: 100%;
+    padding: 12px 14px;
+    box-sizing: border-box;
     border: 1.5px solid var(--primary, #0A369D);
     border-radius: 10px;
-    color: var(--primary, #0A369D);
     background: #ffffff;
+    color: var(--primary, #0A369D);
     text-decoration: none;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
+    line-height: 1.3;
     text-align: center;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.portal-link i {
+    font-size: 14px;
+    flex-shrink: 0;
 }
 
 .portal-link:hover {
     background: var(--primary, #0A369D);
     color: #ffffff;
+    transform: translateY(-1px);
 }
-
 
 @media (max-width: 480px) {
-    .portal-link {
-        flex-direction: column;
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 350px) {
     .portal-links {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
 
     .portal-link {
-        flex-direction: row;
+        font-size: 13px;
+        padding: 11px 14px;
     }
 }
 
@@ -1106,3 +1111,19 @@ table tr:hover {
   .report-card,.report-table-wrap,.summary-item{break-inside:avoid;box-shadow:none}
   body,.dashboard-container,.main-wrapper{background:#fff!important}
 }
+
+
+/* Assigned-barangay resident satisfaction ratings */
+.rating-dashboard-card h1 small{font-size:14px;font-weight:600;color:#64748b}
+.rating-dashboard-card p{margin:6px 0;color:#64748b;font-size:13px}
+.rating-stars{color:#d69e00;letter-spacing:1px;white-space:nowrap;font-weight:700}
+.resident-rating-report{margin:22px 0;padding:18px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,.04)}
+.resident-rating-report>h3{margin:0 0 8px;color:#1f2937}
+.rating-kpis{margin:14px 0}
+.rating-report-grid{margin-top:12px}
+.feedback-list{display:flex;flex-direction:column;gap:10px;max-height:340px;overflow:auto}
+.feedback-item{padding:12px;border:1px solid #e5e7eb;border-radius:9px;background:#fff}
+.feedback-item-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.feedback-item p{margin:8px 0;color:#475569;font-size:13px;overflow-wrap:anywhere}
+.feedback-item small{color:#64748b;font-size:11px}
+@media(max-width:600px){.resident-rating-report{padding:12px}.feedback-item-top{align-items:flex-start;flex-direction:column}}

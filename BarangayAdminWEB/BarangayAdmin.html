@@ -79,6 +79,12 @@
               <h4>Critical AI Complaints</h4>
               <h1 id="dashCriticalComplaints">0</h1>
             </div>
+            <div class="card rating-dashboard-card">
+              <h4>Resident Satisfaction</h4>
+              <h1><span id="dashAverageRating">--</span><small> / 5</small></h1>
+              <p><span id="dashTotalRatings">0</span> resident ratings</p>
+              <div id="dashRatingStars" class="rating-stars" aria-label="Average resident rating">☆☆☆☆☆</div>
+            </div>
           </div>
           <div class="welcome-card">
             <h2>Welcome to BarangayEase Barangay Personnel Portal</h2>
@@ -136,6 +142,29 @@
             <div class="summary-item">Resolved Complaints<strong id="analyticsResolved">0</strong></div>
             <div class="summary-item">Critical Complaints<strong id="analyticsCritical">0</strong></div>
           </div>
+          <section class="resident-rating-report" aria-labelledby="residentRatingReportTitle">
+            <h3 id="residentRatingReportTitle">Resident Satisfaction Ratings — <span id="ratingReportBarangay">Assigned Barangay</span></h3>
+            <p class="section-note">Only feedback submitted by residents assigned to this barangay is included.</p>
+            <div class="summary-grid rating-kpis">
+              <div class="summary-item">Average Rating<strong id="reportAverageRating">-- / 5</strong></div>
+              <div class="summary-item">Total Ratings<strong id="reportTotalRatings">0</strong></div>
+              <div class="summary-item">Feedback Comments<strong id="reportCommentCount">0</strong></div>
+            </div>
+            <div class="report-grid rating-report-grid">
+              <article class="report-card">
+                <h3>Rating Distribution</h3>
+                <div id="reportRatingDistribution" class="bar-chart"></div>
+              </article>
+              <article class="report-card">
+                <h3>Recent Resident Feedback</h3>
+                <div id="reportRecentFeedback" class="feedback-list"><p class="chart-empty">Loading resident feedback...</p></div>
+              </article>
+            </div>
+            <div class="table-container report-table-wrap">
+              <h3>Resident Ratings</h3>
+              <table id="reportRatingsTable"></table>
+            </div>
+          </section>
           <div class="report-grid">
             <article class="report-card">
               <h3>Service Request Status</h3>
