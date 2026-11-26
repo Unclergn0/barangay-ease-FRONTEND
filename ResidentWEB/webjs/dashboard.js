@@ -4,9 +4,11 @@
    JWT Authentication Fixed
    ========================================================= */
 
-const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:8080' 
-    : 'https://barangay-ease-backend.onrender.com';
+const API_BASE_URL = (window.BE_API_BASE_URL ||
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "http://localhost:8080/api"
+        : "https://barangay-ease-backend.onrender.com/api"))
+    .replace(/\/api\/?$/, "");
 const GEMINI_URL = `${API_BASE_URL}/api/ai/chat`;
 
 /* =========================================================
@@ -1528,9 +1530,16 @@ async function sendMessage() {
             data.message ||
             "Sorry, the AI assistant did not provide a response.";
 
-        if (window.marked && typeof window.marked.parse === "function") {
-            pending.innerHTML = window.marked.parse(rawReply);
+        if (window.marked && typeof window.marked.parse === "function"
+                && window.DOMPurify && typeof window.DOMPurify.sanitize === "function") {
+            const rendered = window.marked.parse(rawReply);
+            pending.innerHTML = window.DOMPurify.sanitize(rendered, {
+                USE_PROFILES: { html: true },
+                FORBID_TAGS: ["style", "iframe", "object", "embed", "form"],
+                FORBID_ATTR: ["style"]
+            });
         } else {
+            // Safe text fallback if either rendering library is unavailable.
             pending.textContent = rawReply;
         }
 

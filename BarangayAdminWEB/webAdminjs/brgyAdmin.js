@@ -4,9 +4,11 @@
    Only Critical complaints appear under AI Complaints. Mild and Immediate stay in Complaints.
    ========================================================= */
 
-const API_BASE_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:8080' 
-    : 'https://barangay-ease-backend.onrender.com';
+const API_BASE_URL = (window.BE_API_BASE_URL ||
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "http://localhost:8080/api"
+        : "https://barangay-ease-backend.onrender.com/api"))
+    .replace(/\/api\/?$/, "");
 let loggedAdmin = null;
 let currentBarangay = "";
 let residentsCache = [];
