@@ -655,15 +655,38 @@ const requirements = {
 
 function initializeRequirements() {
     const serviceType = document.getElementById("serviceType");
+    const pickupDateInput = document.getElementById("servicePickupDate");
+    const pickupTimeInput = document.getElementById("servicePickupTime");
 
-    if (!serviceType) return;
+    if (serviceType) {
+        updateServiceRequirements();
+        serviceType.addEventListener("change", updateServiceRequirements);
+    }
 
-    updateServiceRequirements();
+    if (pickupDateInput) {
+        const today = new Date();
+        const localToday = [
+            today.getFullYear(),
+            String(today.getMonth() + 1).padStart(2, "0"),
+            String(today.getDate()).padStart(2, "0")
+        ].join("-");
+        pickupDateInput.min = localToday;
+        pickupDateInput.addEventListener("change", () => {
+            if (!pickupDateInput.value) return;
+            const selected = new Date(`${pickupDateInput.value}T00:00:00`);
+            const day = selected.getDay();
+            if (day === 0 || day === 6) {
+                alert("Barangay pickup is available Monday to Friday only. Please choose a weekday.");
+                pickupDateInput.value = "";
+            }
+        });
+    }
 
-    serviceType.addEventListener(
-        "change",
-        updateServiceRequirements
-    );
+    if (pickupTimeInput) {
+        pickupTimeInput.min = "08:00";
+        pickupTimeInput.max = "16:59";
+        pickupTimeInput.step = "60";
+    }
 }
 
 function updateServiceRequirements() {
@@ -719,6 +742,38 @@ async function submitServiceRequest(event) {
     const pickupDate = document.getElementById("servicePickupDate")?.value || "";
     const pickupTime = document.getElementById("servicePickupTime")?.value || "";
 
+    if (!serviceType || !purpose.trim()) {
+        alert("Please select a service type and enter the purpose of your request.");
+        return;
+    }
+    if (!pickupDate || !pickupTime) {
+        alert("Please select both your preferred pickup date and time.");
+        return;
+    }
+
+    const selectedPickupDate = new Date(`${pickupDate}T00:00:00`);
+    const pickupWeekday = selectedPickupDate.getDay();
+    if (pickupWeekday === 0 || pickupWeekday === 6) {
+        alert("Barangay pickup is available Monday to Friday only.");
+        return;
+    }
+
+    if (pickupTime < "08:00" || pickupTime >= "17:00") {
+        alert("Please choose a pickup time between 8:00 AM and 4:59 PM.");
+        return;
+    }
+
+    const today = new Date();
+    const todayString = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0")
+    ].join("-");
+    if (pickupDate < todayString) {
+        alert("Preferred pickup date cannot be in the past.");
+        return;
+    }
+
     const formData = new FormData();
     formData.append("serviceType", serviceType);
     formData.append("purpose", purpose);
@@ -738,7 +793,15 @@ async function submitServiceRequest(event) {
         });
 
         if (!response.ok) {
-            throw new Error(await response.text() || `HTTP ${response.status}`);
+            const errorText = await response.text();
+            let errorMessage = errorText || `HTTP ${response.status}`;
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.message || errorMessage;
+            } catch (_) {
+                // Keep the raw response when the backend does not return JSON.
+            }
+            throw new Error(errorMessage);
         }
 
         alert("Service request submitted successfully!");

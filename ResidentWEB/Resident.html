@@ -119,9 +119,13 @@
                             </div>
                             <div class="form-group" style="flex: 1;">
                                 <label for="servicePickupTime">Preferred Pickup Time</label>
-                                <input type="time" id="servicePickupTime" required>
+                                <input type="time" id="servicePickupTime" min="08:00" max="16:59" step="60" required>
                             </div>
                         </div>
+                        <p class="form-hint" style="margin: -6px 0 14px; color: #666; font-size: 13px;">
+                            Barangay pickup schedule: Monday to Friday, 8:00 AM–5:00 PM.
+                            Weekends, past dates, and times outside office hours are not accepted.
+                        </p>
 
                         <div class="form-group">
                             <label for="serviceFiles">Upload Supporting Documents (Required)</label>
