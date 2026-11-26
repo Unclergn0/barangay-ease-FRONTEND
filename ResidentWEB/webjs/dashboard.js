@@ -1809,7 +1809,7 @@ async function fetchResidentComplaintHistory() {
                         fileRow.appendChild(download);
                     }
 
-                    const closed = ["resolved", "closed", "completed"].includes(String(row.status || "").toLowerCase());
+                    const closed = ["resolved", "dismissed", "closed", "completed"].includes(String(row.status || "").toLowerCase());
                     if (file.fileId && !closed) {
                         const input = document.createElement("input");
                         input.type = "file";

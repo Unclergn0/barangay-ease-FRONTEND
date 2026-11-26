@@ -311,31 +311,26 @@ async function loadComplaints() {
 
           const evidence = attachmentButtons(c.files, "complaint");
 
-          const pending = reviewStatus === "PENDING";
+          const status = normalize(c.status);
+          const isFinal = status === "resolved" || status === "dismissed";
+          const disabled = isFinal ? "disabled" : "";
 
-          const actions = pending
-            ? `
-              <button class="admin-action"
-                onclick="viewAiComplaint(${id})">
-                Review
-              </button>
+          const actions = `
+            <button class="admin-action" ${disabled}
+              onclick="changeComplaintStatus(${id},'Investigating')">
+              Investigate
+            </button>
 
-              <button class="admin-action approve"
-                onclick="reviewAiComplaint(${id},'ACCEPT')">
-                Accept
-              </button>
+            <button class="admin-action approve" ${disabled}
+              onclick="reviewAiComplaint(${id},'ACCEPT')">
+              Resolve
+            </button>
 
-              <button class="admin-action reject"
-                onclick="reviewAiComplaint(${id},'REJECT')">
-                Reject
-              </button>
-            `
-            : `
-              <button class="admin-action"
-                onclick="viewAiComplaint(${id})">
-                View Review
-              </button>
-            `;
+            <button class="admin-action reject" ${disabled}
+              onclick="reviewAiComplaint(${id},'REJECT')">
+              Dismiss
+            </button>
+          `;
 
           return `
             <tr>
@@ -379,15 +374,24 @@ async function loadComplaints() {
           const classification = normalize(c.classificationType)
             .toUpperCase();
 
+          const status = normalize(c.status);
+          const isFinal = status === "resolved" || status === "dismissed";
+          const disabled = isFinal ? "disabled" : "";
+
           const actions = `
-            <button class="admin-action"
-              onclick="changeComplaintStatus(${id},'In Progress')">
-              Process
+            <button class="admin-action" ${disabled}
+              onclick="changeComplaintStatus(${id},'Investigating')">
+              Investigate
             </button>
 
-            <button class="admin-action approve"
+            <button class="admin-action approve" ${disabled}
               onclick="changeComplaintStatus(${id},'Resolved')">
               Resolve
+            </button>
+
+            <button class="admin-action reject" ${disabled}
+              onclick="changeComplaintStatus(${id},'Dismissed')">
+              Dismiss
             </button>
           `;
 
@@ -469,10 +473,10 @@ async function reviewAiComplaint(id, action) {
   if (!Number.isFinite(Number(id))) return;
 
   const body = { action };
-  const actionLabel = action === "ACCEPT" ? "accept" : "reject";
+  const actionLabel = action === "ACCEPT" ? "resolve" : "dismiss";
 
   if (!confirm(
-    `Are you sure you want to ${actionLabel} AI complaint #${id}? The complaint record will remain visible.`
+    `Are you sure you want to ${actionLabel} AI complaint #${id}? This is a final decision.`
   )) {
     return;
   }
@@ -498,7 +502,7 @@ async function reviewAiComplaint(id, action) {
     renderAnalytics();
 
     alert(
-      `AI complaint #${id} was ${actionLabel}ed. Its record remains in the AI Complaints list.`
+      `AI complaint #${id} was marked ${actionLabel === "resolve" ? "Resolved" : "Dismissed"}.`
     );
 
   } catch (e) {
