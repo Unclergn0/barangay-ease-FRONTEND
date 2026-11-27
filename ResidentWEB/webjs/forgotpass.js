@@ -2,11 +2,7 @@
    BACKEND CONFIG (Dynamic detection para sa Netlify at Localhost)
 ========================================== */
 
-const BACKEND_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8080'
-    : 'https://barangay-ease-backend.onrender.com';
-
-const API_URL = `${BACKEND_BASE}/api`;
+const API_URL = (window.BE_API_BASE_URL || 'https://barangay-ease-backend.onrender.com/api').replace(/\/+$/, '');
 
 /* ==========================================
    ELEMENTS

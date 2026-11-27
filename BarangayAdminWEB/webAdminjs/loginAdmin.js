@@ -7,11 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginBtn = document.getElementById("loginBtn");
 
     // Dynamic Hostname Detection para sa Admin Login
-    const BACKEND_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8080'
-        : 'https://barangay-ease-backend.onrender.com';
+    const API_BASE = (window.BE_API_BASE_URL || 'https://barangay-ease-backend.onrender.com/api').replace(/\/+$/, '');
 
-    const API_URL = `${BACKEND_BASE}/api/admins/login`;
+    const API_URL = `${API_BASE}/admins/login`;
 
     if (!form) {
         console.error("Admin login form not found.");

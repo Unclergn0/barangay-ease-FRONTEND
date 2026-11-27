@@ -10,11 +10,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // ==========================================
     // DYNAMIC BACKEND URL DETECTION
     // ==========================================
-    const BACKEND_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8080'
-        : 'https://barangay-ease-backend.onrender.com';
+    const API_BASE = (window.BE_API_BASE_URL || 'https://barangay-ease-backend.onrender.com/api').replace(/\/+$/, '');
 
-    const API_URL = `${BACKEND_BASE}/api/admins/update-password`;
+    const API_URL = `${API_BASE}/admins/update-password`;
 
     // ==========================================
     // SHOW / HIDE PASSWORD AND SECURITY PIN
