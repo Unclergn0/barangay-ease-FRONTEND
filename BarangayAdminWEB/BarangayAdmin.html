@@ -21,11 +21,13 @@
         <div class="notification-wrapper"><button class="notification-btn" onclick="toggleNotifications()"
             aria-label="Notifications" title="Notifications"><i class="fas fa-bell"></i><span id="notifBadge"
               class="notif-badge hidden">0</span></button>
-          <div id="notificationPanel" class="notification-panel hidden" role="dialog" aria-label="Notifications">
+          <div id="notificationPanel" class="notification-panel hidden" role="dialog" aria-modal="true" aria-label="Notifications">
             <div class="notification-header">
-              <h4>Notifications</h4><span><span class="mark-all-read" onclick="markAllNotificationsRead()">Mark all as
-                  read</span> &nbsp;|&nbsp; <span class="mark-all-read"
-                  onclick="toggleNotifications(false)">Close</span></span>
+              <h4>Notifications</h4>
+              <div class="notification-header-actions">
+                <button type="button" class="mark-all-read" onclick="markAllNotificationsRead()">Mark all as read</button>
+                <button type="button" class="notification-close" onclick="toggleNotifications(false)" aria-label="Close notifications"><i class="fas fa-times"></i></button>
+              </div>
             </div>
             <div id="notificationList" class="notification-list"></div>
           </div>

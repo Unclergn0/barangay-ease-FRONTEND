@@ -1146,3 +1146,169 @@ table tr:hover {
 .feedback-item p{margin:8px 0;color:#475569;font-size:13px;overflow-wrap:anywhere}
 .feedback-item small{color:#64748b;font-size:11px}
 @media(max-width:600px){.resident-rating-report{padding:12px}.feedback-item-top{align-items:flex-start;flex-direction:column}}
+
+
+/* Modern notification center */
+.notification-btn {
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.12);
+    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+.notification-btn:focus-visible,
+.mark-all-read:focus-visible,
+.notification-item:focus-visible {
+    outline: 3px solid var(--secondary);
+    outline-offset: 3px;
+}
+.notification-panel {
+    width: min(92vw, 520px);
+    max-height: min(78vh, 680px);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e5eaf2;
+    border-top: 0;
+    border-radius: 20px;
+    box-shadow: 0 24px 80px rgba(15,23,42,.28);
+    animation: notificationModalIn .2s ease-out;
+}
+.notification-panel:not(.hidden)::before {
+    background: rgba(15,23,42,.58);
+    backdrop-filter: blur(4px);
+}
+@keyframes notificationModalIn {
+    from { opacity: 0; transform: translate(-50%,-47%) scale(.98); }
+    to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+}
+.notification-header {
+    padding: 22px 24px 18px;
+    background: #fff;
+    border-bottom: 1px solid #edf0f5;
+}
+.notification-header h4 {
+    color: #172554;
+    font-size: 20px;
+    font-weight: 750;
+    letter-spacing: -.35px;
+}
+.notification-header h4::after {
+    content: "Your latest barangay updates";
+    display: block;
+    margin-top: 5px;
+    color: #8490a3;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+.notification-header > span {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #cbd5e1;
+    font-size: 12px;
+}
+.mark-all-read {
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.notification-list {
+    max-height: min(58vh, 520px);
+    overflow-y: auto;
+    padding: 8px 12px 14px;
+    background: #f8fafc;
+}
+.notification-item {
+    position: relative;
+    margin: 7px 0;
+    padding: 16px 18px 16px 22px;
+    border: 1px solid #e8edf4;
+    border-radius: 13px;
+    background: #fff;
+    cursor: pointer;
+    transition: background .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.notification-item:hover {
+    background: #fff;
+    border-color: #cbd5e1;
+    box-shadow: 0 5px 16px rgba(15,23,42,.06);
+    transform: translateY(-1px);
+}
+.notification-item.unread {
+    background: #eff6ff;
+    border-color: #d7e7ff;
+    border-left: 3px solid var(--primary);
+}
+.notification-item.read {
+    opacity: 1;
+    background: #fff;
+}
+.notification-item strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #172554;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.notification-item p {
+    margin: 0 0 9px;
+    color: #536176;
+    font-size: 13px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+.notification-item small {
+    color: #8a96a8;
+    font-size: 11px;
+}
+.notification-item.alert {
+    background: #fff7f7;
+    border-color: #fee2e2;
+    border-left: 3px solid #dc2626;
+}
+.notification-item.alert strong { color: #b91c1c; }
+@media (max-width: 600px) {
+    .notification-panel {
+        width: calc(100vw - 24px);
+        max-height: 82vh;
+        border-radius: 16px;
+    }
+    .notification-header { padding: 18px 16px 15px; gap: 10px; }
+    .notification-header h4 { font-size: 18px; }
+    .notification-header > span { gap: 7px; }
+    .notification-list { max-height: 66vh; padding: 7px 9px 12px; }
+    .notification-item { padding: 14px; }
+}
+
+.notification-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.notification-header-actions .mark-all-read {
+    padding: 7px 0;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+.notification-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: #64748b;
+    background: #f1f5f9;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+}
+.notification-close:hover {
+    color: #172554;
+    background: #e2e8f0;
+}
+@media (max-width: 600px) {
+    .notification-header-actions { gap: 9px; }
+}

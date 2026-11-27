@@ -567,14 +567,6 @@ function showSection(sectionId) {
 
     document.getElementById("profileDropdown")?.classList.add("hidden");
 
-    if (sectionId === "notificationSection") {
-        document.getElementById("notificationList")?.classList.remove("hidden");
-
-        document.getElementById("notificationDetailView")?.classList.add("hidden");
-
-        fetchUserNotifications();
-    }
-
     if (sectionId === "transactionSection") {
         backToTransactions();
     }
@@ -1557,83 +1549,120 @@ async function sendMessage() {
    14. NOTIFICATIONS
    ========================================================= */
 
-async function fetchUserNotifications() {
-    const container =
-        document.getElementById("notificationList");
+let residentNotificationsCache = [];
 
+function formatResidentNotificationTime(value) {
+    if (!value) return "Recently";
+    const date = Array.isArray(value)
+        ? new Date(value[0], (value[1] || 1) - 1, value[2] || 1, value[3] || 0, value[4] || 0)
+        : new Date(value);
+    return Number.isNaN(date.getTime())
+        ? "Recently"
+        : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+
+function updateResidentNotificationBadge(items) {
+    const unread = items.filter(item => !(item.isRead || item.read)).length;
+    const badge = document.getElementById("residentNotifBadge");
+    const summary = document.getElementById("residentNotificationSummary");
+    if (badge) {
+        badge.textContent = unread > 99 ? "99+" : String(unread);
+        badge.classList.toggle("hidden", unread === 0);
+    }
+    if (summary) {
+        summary.textContent = unread
+            ? `${unread} unread ${unread === 1 ? "notification" : "notifications"}`
+            : "You're all caught up";
+    }
+    const markAllButton = document.getElementById("residentMarkAllRead");
+    if (markAllButton) markAllButton.disabled = unread === 0;
+}
+
+async function fetchUserNotifications() {
+    const container = document.getElementById("notificationList");
     if (!container) return;
 
     if (!currentResidentId) {
-        container.textContent =
-            "Resident account not found. Please log in again.";
+        container.textContent = "Resident account not found. Please log in again.";
         return;
     }
 
-    container.textContent = "Loading notifications...";
+    container.innerHTML = '<div class="resident-notification-empty"><i class="fas fa-spinner fa-spin"></i><span>Loading notifications...</span></div>';
 
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/api/notifications`,
-            {
-                headers: getResidentAuthHeaders()
-            }
-        );
+        const response = await fetch(`${API_BASE_URL}/api/notifications`, {
+            headers: getResidentAuthHeaders()
+        });
 
         if (!response.ok) {
-            throw new Error(
-                await response.text() || `HTTP ${response.status}`
-            );
+            throw new Error(await response.text() || `HTTP ${response.status}`);
         }
 
         const items = await response.json();
-
+        residentNotificationsCache = Array.isArray(items) ? items : [];
+        updateResidentNotificationBadge(residentNotificationsCache);
         container.innerHTML = "";
 
-        if (!Array.isArray(items) || items.length === 0) {
-            container.textContent = "No notifications yet.";
+        if (!residentNotificationsCache.length) {
+            container.innerHTML = '<div class="resident-notification-empty"><span class="resident-notification-empty-icon"><i class="far fa-bell"></i></span><strong>No notifications yet</strong><span>When there are updates about your barangay services, they will appear here.</span></div>';
             return;
         }
 
-        items.forEach(item => {
-            const card = document.createElement("div");
-            card.className = "clickable-notif";
+        residentNotificationsCache.forEach(item => {
+            const isRead = Boolean(item.isRead || item.read);
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = `resident-notification-card ${isRead ? "is-read" : "is-unread"}`;
+            const notificationId = item.notificationId ?? item.id;
+            if (notificationId != null) card.dataset.notificationId = String(notificationId);
+
+            const icon = document.createElement("span");
+            icon.className = "resident-notification-card-icon";
+            icon.innerHTML = '<i class="fas fa-bell"></i>';
+
+            const content = document.createElement("span");
+            content.className = "resident-notification-card-content";
 
             const title = document.createElement("strong");
-            title.textContent =
-                item.title || "Barangay Update";
+            title.textContent = item.title || "Barangay Update";
 
-            const message = document.createElement("p");
-            message.textContent =
-                item.message || item.description || "";
+            const message = document.createElement("span");
+            message.className = "resident-notification-message";
+            message.textContent = item.message || item.description || "You have a new update.";
 
-            const state = document.createElement("small");
-            state.textContent =
-                item.isRead || item.read ? "Read" : "Unread";
+            const meta = document.createElement("span");
+            meta.className = "resident-notification-meta";
+            meta.textContent = formatResidentNotificationTime(item.createdAt);
 
-            card.append(title, message, state);
+            content.append(title, message, meta);
 
-            card.addEventListener("click", () => {
+            const status = document.createElement("span");
+            status.className = "resident-notification-status";
+            status.innerHTML = isRead
+                ? '<i class="fas fa-check"></i>'
+                : '<span class="resident-notification-unread-dot"></span>';
+            status.setAttribute("aria-label", isRead ? "Read" : "Unread");
+
+            card.append(icon, content, status);
+            card.addEventListener("click", async () => {
                 viewNotificationDetail(
                     item.title || "Barangay Update",
                     item.message || item.description || ""
                 );
-
-                const id =
-                    item.notificationId ?? item.id;
-
+                const id = item.notificationId ?? item.id;
                 if (id != null && !(item.isRead || item.read)) {
-                    markNotificationRead(id);
+                    await markNotificationRead(id);
                 }
             });
-
             container.appendChild(card);
         });
-
     } catch (error) {
         console.error("Fetch Notifications Error:", error);
-
-        container.textContent =
-            `Unable to load notifications: ${error.message}`;
+        container.innerHTML = "";
+        const message = document.createElement("div");
+        message.className = "resident-notification-error";
+        message.textContent = `Unable to load notifications: ${error.message}`;
+        container.appendChild(message);
     }
 }
 
@@ -1648,42 +1677,87 @@ async function markNotificationRead(id) {
         );
 
         if (!response.ok) {
-            throw new Error(
-                await response.text() || `HTTP ${response.status}`
-            );
+            throw new Error(await response.text() || `HTTP ${response.status}`);
         }
 
-        await fetchUserNotifications();
-
+        const notification = residentNotificationsCache.find(
+            item => String(item.notificationId ?? item.id) === String(id)
+        );
+        if (notification) {
+            notification.isRead = true;
+            notification.read = true;
+        }
+        updateResidentNotificationBadge(residentNotificationsCache);
+        const card = [...document.querySelectorAll(".resident-notification-card")]
+            .find(element => element.dataset.notificationId === String(id));
+        if (card) {
+            card.classList.remove("is-unread");
+            card.classList.add("is-read");
+            const status = card.querySelector(".resident-notification-status");
+            if (status) {
+                status.innerHTML = '<i class="fas fa-check"></i>';
+                status.setAttribute("aria-label", "Read");
+            }
+        }
     } catch (error) {
         console.error("Mark Notification Read Error:", error);
     }
 }
 
+async function markAllResidentNotificationsRead() {
+    const unread = residentNotificationsCache.filter(item => !(item.isRead || item.read));
+    if (!unread.length) return;
+
+    const results = await Promise.allSettled(unread.map(item => {
+        const id = item.notificationId ?? item.id;
+        return id == null ? Promise.resolve() : fetch(
+            `${API_BASE_URL}/api/notifications/${encodeURIComponent(id)}/read`,
+            { method: "PUT", headers: getResidentAuthHeaders() }
+        ).then(response => {
+            if (!response.ok) throw new Error(`Unable to mark notification ${id} as read.`);
+            item.isRead = true;
+            item.read = true;
+        });
+    }));
+
+    if (results.some(result => result.status === "rejected")) {
+        console.error("Some notifications could not be marked as read.", results);
+    }
+    await fetchUserNotifications();
+}
+
+function openResidentNotifications() {
+    const modal = document.getElementById("residentNotificationModal");
+    if (!modal) return;
+    document.getElementById("profileDropdown")?.classList.add("hidden");
+    modal.classList.remove("hidden");
+    document.body.classList.add("notification-modal-open");
+    document.getElementById("notificationList")?.classList.remove("hidden");
+    document.getElementById("notificationDetailView")?.classList.add("hidden");
+    fetchUserNotifications();
+}
+
+function closeResidentNotifications() {
+    document.getElementById("residentNotificationModal")?.classList.add("hidden");
+    document.body.classList.remove("notification-modal-open");
+}
+
 function viewNotificationDetail(title, description) {
-    document
-        .getElementById("notificationList")
-        ?.classList.add("hidden");
-
-    document
-        .getElementById("notificationDetailView")
-        ?.classList.remove("hidden");
-
+    document.getElementById("notificationList")?.classList.add("hidden");
+    document.getElementById("notificationDetailView")?.classList.remove("hidden");
     setText("detailTitle", title);
     setText("detailDescription", description);
 }
 
 function backToNotifications() {
-    document
-        .getElementById("notificationList")
-        ?.classList.remove("hidden");
-
-    document
-        .getElementById("notificationDetailView")
-        ?.classList.add("hidden");
-
+    document.getElementById("notificationList")?.classList.remove("hidden");
+    document.getElementById("notificationDetailView")?.classList.add("hidden");
     fetchUserNotifications();
 }
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeResidentNotifications();
+});
 
 async function downloadResidentFile(path) {
     const response = await fetch(`${API_BASE_URL}${path}`, {

@@ -28,7 +28,14 @@
             </div>
 
             <div class="topbar-right">
-                <i class="fas fa-bell" title="Notifications" onclick="showSection('notificationSection')"></i>
+                <div class="resident-notification-wrapper">
+                    <button type="button" class="resident-notification-btn" id="residentNotificationBtn"
+                        aria-label="Open notifications" aria-haspopup="dialog" aria-controls="residentNotificationModal"
+                        onclick="openResidentNotifications()">
+                        <i class="fas fa-bell" aria-hidden="true"></i>
+                        <span id="residentNotifBadge" class="resident-notif-badge hidden" aria-live="polite">0</span>
+                    </button>
+                </div>
 
                 <!-- Profile Dropdown Container -->
                 <div class="topbar-profile-wrapper" onclick="toggleProfileDropdown()">
@@ -44,6 +51,39 @@
             </div>
         </header>
 
+    <!-- RESIDENT NOTIFICATIONS MODAL -->
+    <div id="residentNotificationModal" class="resident-notification-overlay hidden"
+        role="dialog" aria-modal="true" aria-labelledby="residentNotificationTitle"
+        onclick="if (event.target === this) closeResidentNotifications()">
+        <section class="resident-notification-modal">
+            <header class="resident-notification-header">
+                <div>
+                    <span class="resident-notification-eyebrow">BARANGAYEASE UPDATES</span>
+                    <h2 id="residentNotificationTitle">Notifications</h2>
+                    <p>Stay up to date with your barangay services.</p>
+                </div>
+                <button type="button" class="resident-notification-close" aria-label="Close notifications"
+                    onclick="closeResidentNotifications()"><i class="fas fa-times"></i></button>
+            </header>
+            <div class="resident-notification-toolbar">
+                <span id="residentNotificationSummary">Your latest updates</span>
+                <button type="button" id="residentMarkAllRead" onclick="markAllResidentNotificationsRead()">
+                    Mark all as read
+                </button>
+            </div>
+            <div id="notificationList" class="resident-notification-list" aria-live="polite">
+                <div class="resident-notification-empty">Loading notifications...</div>
+            </div>
+            <div id="notificationDetailView" class="resident-notification-detail hidden">
+                <button type="button" onclick="backToNotifications()" class="resident-notification-back">
+                    <i class="fas fa-arrow-left"></i> Back to notifications
+                </button>
+                <h3 id="detailTitle"></h3>
+                <p id="detailDescription"></p>
+            </div>
+        </section>
+    </div>
+
         <!-- MAIN WRAPPER PARA SA SIDEBAR AT MAIN CONTENT -->
         <div class="main-wrapper">
 
@@ -58,7 +98,6 @@
 
                     <li class="menu-category">Support</li>
                     <li onclick="showSection('chatSection')"><i class="fas fa-robot"></i> AI Chat Support</li>
-                    <li onclick="showSection('notificationSection')"><i class="fas fa-bell"></i> Notifications</li>
                     <li onclick="showSection('contactBarangaySection')"><i class="fas fa-envelope"></i> Contact Barangay
                     </li>
                     <li onclick="showSection('feedbackSection')"><i class="fas fa-star"></i> Rate & Feedback</li>
@@ -164,20 +203,6 @@
                         <div id="detSubmittedFilesList" style="display: flex; flex-direction: column; gap: 10px;"></div>
                     </div>
                 </section>
-
-                <!-- NOTIFICATION SECTION -->
-                <section id="notificationSection" class="content-section hidden">
-                    <h2>Notifications</h2>
-                    <div id="notificationList"></div>
-                    <div id="notificationDetailView" class="hidden notif-detail-card">
-                        <button onclick="backToNotifications()" class="btn-back-notif">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <h3 id="detailTitle"></h3>
-                        <p id="detailDescription"></p>
-                    </div>
-                </section>
-
 
                 <!-- COMPLAINT SECTION: IDs match classifyComplaint() in dashboard.js -->
                 <section id="complaintSection" class="content-section hidden">
