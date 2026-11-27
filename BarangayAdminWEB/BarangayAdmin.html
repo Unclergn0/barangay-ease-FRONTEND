@@ -31,6 +31,22 @@
             </div>
             <div id="notificationList" class="notification-list"></div>
           </div>
+          <div id="adminNotificationDetailModal" class="notification-detail-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="adminNotificationDetailTitle" onclick="if(event.target===this)closeAdminNotificationDetail()">
+            <section class="notification-detail-modal">
+              <header class="notification-detail-header">
+                <div><span class="notification-detail-eyebrow">NOTIFICATION DETAILS</span><h3 id="adminNotificationDetailTitle">Notification</h3></div>
+                <button type="button" class="notification-close" onclick="closeAdminNotificationDetail()" aria-label="Close notification details"><i class="fas fa-times"></i></button>
+              </header>
+              <div class="notification-detail-body">
+                <p id="adminNotificationDetailDescription"></p>
+                <small id="adminNotificationDetailTime"></small>
+              </div>
+              <footer class="notification-detail-actions">
+                <button type="button" class="notification-back-button" onclick="backToAdminNotifications()"><i class="fas fa-arrow-left"></i> Back to notifications</button>
+                <button type="button" id="adminNotificationOpenRelated" class="notification-related-button hidden" onclick="openAdminNotificationDestination()">Open related section <i class="fas fa-arrow-right"></i></button>
+              </footer>
+            </section>
+          </div>
         </div>
         <div class="topbar-profile-wrapper">
           <div class="topbar-profile" onclick="toggleProfileDropdown()"><img src="webAdminlogo/noproficon.png"

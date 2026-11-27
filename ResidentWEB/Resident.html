@@ -74,14 +74,33 @@
             <div id="notificationList" class="resident-notification-list" aria-live="polite">
                 <div class="resident-notification-empty">Loading notifications...</div>
             </div>
-            <div id="notificationDetailView" class="resident-notification-detail hidden">
-                <button type="button" onclick="backToNotifications()" class="resident-notification-back">
-                    <i class="fas fa-arrow-left"></i> Back to notifications
-                </button>
+        </section>
+    </div>
+
+    <!-- SEPARATE CENTERED NOTIFICATION DETAIL MODAL -->
+    <div id="notificationDetailView" class="resident-notification-overlay resident-notification-detail-overlay hidden"
+        role="dialog" aria-modal="true" aria-labelledby="detailTitle"
+        onclick="if (event.target === this) closeNotificationDetail()">
+        <article class="resident-notification-detail-modal">
+            <header class="resident-notification-detail-header">
+                <div>
+                    <span class="resident-notification-detail-eyebrow">BARANGAYEASE UPDATE</span>
+                    <h2>Notification details</h2>
+                </div>
+                <button type="button" class="resident-notification-close" aria-label="Close notification details"
+                    onclick="closeNotificationDetail()"><i class="fas fa-times"></i></button>
+            </header>
+            <div class="resident-notification-detail-content">
+                <div class="resident-notification-detail-icon"><i class="far fa-bell"></i></div>
                 <h3 id="detailTitle"></h3>
                 <p id="detailDescription"></p>
             </div>
-        </section>
+            <footer class="resident-notification-detail-footer">
+                <button type="button" onclick="backToNotifications()" class="resident-notification-back">
+                    <i class="fas fa-arrow-left"></i> Back to notifications
+                </button>
+            </footer>
+        </article>
     </div>
 
         <!-- MAIN WRAPPER PARA SA SIDEBAR AT MAIN CONTENT -->

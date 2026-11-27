@@ -829,16 +829,51 @@ function toggleNotifications(force) {
   if (open) { $("profileDropdown")?.classList.add("hidden"); loadAdminNotifications(); }
 }
 
+let activeAdminNotification = null;
+
 async function openAdminNotification(id) {
-  const n = notificationsCache.find(x => Number(x.notificationId) === id); if (!n) return;
+  const n = notificationsCache.find(x => Number(x.notificationId) === Number(id));
+  if (!n) return;
+  activeAdminNotification = n;
   if (!n.isRead) {
-    try { await api(`/api/notifications/${id}/read`, { method: "PUT" }); n.isRead = true; }
-    catch (e) { console.error(e); }
+    try { await api(`/api/notifications/${Number(id)}/read`, { method: "PUT" }); n.isRead = true; }
+    catch (e) { console.error("Unable to mark notification as read:", e); }
   }
-  toggleNotifications(false);
-  if (/^critical/i.test(String(n.title))) showSection("ai-complaints");
-  else if (`${n.title} ${n.description || ""}`.toLowerCase().includes("complaint")) showSection("complaints");
+
+  const title = $("adminNotificationDetailTitle");
+  const description = $("adminNotificationDetailDescription");
+  const time = $("adminNotificationDetailTime");
+  const relatedButton = $("adminNotificationOpenRelated");
+  if (title) title.textContent = String(n.title || "Notification");
+  if (description) description.textContent = String(n.description || n.message || "No additional details available.");
+  if (time) time.textContent = notifTime(n.createdAt);
+
+  const text = `${n.title || ""} ${n.description || n.message || ""}`.toLowerCase();
+  const hasDestination = /^critical/i.test(String(n.title || "")) || text.includes("complaint");
+  relatedButton?.classList.toggle("hidden", !hasDestination);
+  $("notificationPanel")?.classList.add("hidden");
+  $("adminNotificationDetailModal")?.classList.remove("hidden");
   renderNotifications();
+}
+
+function backToAdminNotifications() {
+  $("adminNotificationDetailModal")?.classList.add("hidden");
+  $("notificationPanel")?.classList.remove("hidden");
+  activeAdminNotification = null;
+}
+
+function closeAdminNotificationDetail() {
+  $("adminNotificationDetailModal")?.classList.add("hidden");
+  activeAdminNotification = null;
+}
+
+function openAdminNotificationDestination() {
+  if (!activeAdminNotification) return;
+  const n = activeAdminNotification;
+  const text = `${n.title || ""} ${n.description || n.message || ""}`.toLowerCase();
+  closeAdminNotificationDetail();
+  if (/^critical/i.test(String(n.title || ""))) showSection("ai-complaints");
+  else if (text.includes("complaint")) showSection("complaints");
 }
 
 async function markAllNotificationsRead() {
@@ -861,7 +896,11 @@ function startNotificationPolling() {
   clearInterval(notificationTimer);
   notificationTimer = setInterval(() => { if (!document.hidden) loadAdminNotifications(); }, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAdminNotifications(); });
-  document.addEventListener("keydown", e => { if (e.key === "Escape") toggleNotifications(false); });
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (!$("adminNotificationDetailModal")?.classList.contains("hidden")) closeAdminNotificationDetail();
+    else toggleNotifications(false);
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -1730,33 +1730,49 @@ function openResidentNotifications() {
     const modal = document.getElementById("residentNotificationModal");
     if (!modal) return;
     document.getElementById("profileDropdown")?.classList.add("hidden");
+    document.getElementById("notificationDetailView")?.classList.add("hidden");
     modal.classList.remove("hidden");
     document.body.classList.add("notification-modal-open");
-    document.getElementById("notificationList")?.classList.remove("hidden");
-    document.getElementById("notificationDetailView")?.classList.add("hidden");
     fetchUserNotifications();
 }
 
 function closeResidentNotifications() {
     document.getElementById("residentNotificationModal")?.classList.add("hidden");
+    document.getElementById("notificationDetailView")?.classList.add("hidden");
     document.body.classList.remove("notification-modal-open");
 }
 
 function viewNotificationDetail(title, description) {
-    document.getElementById("notificationList")?.classList.add("hidden");
-    document.getElementById("notificationDetailView")?.classList.remove("hidden");
+    // Show details in a separate centered modal, using the same full-screen
+    // blurred backdrop as the notification-bell modal.
+    document.getElementById("residentNotificationModal")?.classList.add("hidden");
     setText("detailTitle", title);
     setText("detailDescription", description);
+    document.getElementById("notificationDetailView")?.classList.remove("hidden");
+    document.body.classList.add("notification-modal-open");
+}
+
+function closeNotificationDetail() {
+    document.getElementById("notificationDetailView")?.classList.add("hidden");
+    document.body.classList.remove("notification-modal-open");
 }
 
 function backToNotifications() {
-    document.getElementById("notificationList")?.classList.remove("hidden");
     document.getElementById("notificationDetailView")?.classList.add("hidden");
+    document.getElementById("residentNotificationModal")?.classList.remove("hidden");
+    document.body.classList.add("notification-modal-open");
     fetchUserNotifications();
 }
 
 document.addEventListener("keydown", event => {
-    if (event.key === "Escape") closeResidentNotifications();
+    if (event.key === "Escape") {
+        const detail = document.getElementById("notificationDetailView");
+        if (detail && !detail.classList.contains("hidden")) {
+            closeNotificationDetail();
+        } else {
+            closeResidentNotifications();
+        }
+    }
 });
 
 async function downloadResidentFile(path) {
