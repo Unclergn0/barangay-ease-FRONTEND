@@ -1410,3 +1410,7 @@ table tr:hover {
     .notification-detail-actions { padding: 14px 18px 18px; align-items: stretch; flex-direction: column; }
     .notification-back-button, .notification-related-button { width: 100%; }
 }
+
+
+/* Subtle sidebar page transition; preserve the current dashboard theme. */
+.main-content.section-loading { opacity: .88; transition: opacity .1s ease; }

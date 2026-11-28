@@ -2111,3 +2111,24 @@ body.notification-modal-open { overflow: hidden; }
     .resident-notification-detail-content { padding: 22px 19px 25px; }
     .resident-notification-detail-footer { padding: 14px 18px; }
 }
+
+
+/* Transaction details: centered modal using the existing detail card styles. */
+body.transaction-modal-visible::after {
+    content: ""; position: fixed; inset: 0; background: rgba(0,0,0,.48);
+    z-index: 9998;
+}
+#transactionDetailView.transaction-modal-open {
+    display: block !important; position: fixed; z-index: 9999;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 40px);
+    overflow-y: auto; margin: 0; box-sizing: border-box;
+}
+.transaction-modal-close {
+    float: right; border: 0; background: transparent; color: inherit;
+    font-size: 28px; line-height: 1; cursor: pointer; padding: 2px 8px;
+}
+.main-content.section-loading { opacity: .88; transition: opacity .1s ease; }
+@media (max-width: 600px) {
+    #transactionDetailView.transaction-modal-open { width: calc(100vw - 20px); max-height: calc(100vh - 20px); }
+}

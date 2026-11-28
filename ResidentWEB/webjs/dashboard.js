@@ -554,30 +554,34 @@ function logout() {
    6. SECTION NAVIGATION
    ========================================================= */
 
+let residentNavigationTimer = null;
+let residentNavigationTarget = null;
 function showSection(sectionId) {
-    document.querySelectorAll(".content-section").forEach(section => {
-        section.classList.add("hidden");
-    });
-
     const target = document.getElementById(sectionId);
+    if (!target) return;
+    if (residentNavigationTarget === sectionId && !target.classList.contains("hidden")) return;
+    residentNavigationTarget = sectionId;
+    if (residentNavigationTimer) clearTimeout(residentNavigationTimer);
 
-    if (target) {
-        target.classList.remove("hidden");
-    }
-
+    const menuItems = document.querySelectorAll(".sidebar-menu li[onclick*='showSection']");
+    menuItems.forEach(item => item.classList.remove("active"));
+    document.querySelector(`.sidebar-menu li[onclick*="'${sectionId}'"]`)?.classList.add("active");
     document.getElementById("profileDropdown")?.classList.add("hidden");
 
-    if (sectionId === "transactionSection") {
-        backToTransactions();
-    }
-
-    if (sectionId === "complaintHistorySection") {
-        fetchResidentComplaintHistory();
-    }
-
-    if (sectionId === "contactBarangaySection") {
-        loadBarangayContact();
-    }
+    // Keep the requested subtle 100ms navigation transition; API work remains asynchronous.
+    const main = document.querySelector(".main-content");
+    main?.classList.add("section-loading");
+    residentNavigationTimer = setTimeout(() => {
+        document.querySelectorAll(".content-section").forEach(section => section.classList.add("hidden"));
+        target.classList.remove("hidden");
+        main?.classList.remove("section-loading");
+        if (sectionId === "transactionSection") {
+            closeTransactionModal(true);
+            fetchUserTransactions();
+        }
+        if (sectionId === "complaintHistorySection") fetchResidentComplaintHistory();
+        if (sectionId === "contactBarangaySection") loadBarangayContact();
+    }, 100);
 }
 
 /* =========================================================
@@ -798,6 +802,7 @@ async function submitServiceRequest(event) {
             throw new Error(errorMessage);
         }
 
+        residentTransactionsCache = null;
         alert("Service request submitted successfully!");
         document.getElementById("serviceRequestForm")?.reset();
         updateServiceRequirements();
@@ -813,7 +818,11 @@ async function submitServiceRequest(event) {
    9. FETCH RESIDENT TRANSACTIONS
    ========================================================= */
 
-async function fetchUserTransactions() {
+let residentTransactionsCache = null;
+let residentTransactionsCacheAt = 0;
+let residentTransactionsPromise = null;
+const RESIDENT_LIST_CACHE_MS = 30000;
+async function fetchUserTransactions(forceRefresh = false) {
     const container = document.getElementById("transactionListContainer");
 
     if (!container) return;
@@ -826,13 +835,14 @@ async function fetchUserTransactions() {
         return;
     }
 
-    container.innerHTML = `
-        <p style="text-align:center;color:#666;padding:20px;">
-            Loading transactions from database...
-        </p>
-    `;
+    if (!forceRefresh && Array.isArray(residentTransactionsCache) && Date.now() - residentTransactionsCacheAt < RESIDENT_LIST_CACHE_MS) {
+        renderResidentTransactions(residentTransactionsCache, container);
+        return;
+    }
+    if (residentTransactionsPromise) return residentTransactionsPromise;
+    container.innerHTML = `<p style="text-align:center;color:#666;padding:20px;">Loading transactions...</p>`;
 
-    try {
+    residentTransactionsPromise = (async () => { try {
         const response = await fetch(
             `${API_BASE_URL}/api/services/transactions?residentId=${encodeURIComponent(currentResidentId)}`,
             {
@@ -848,13 +858,23 @@ async function fetchUserTransactions() {
         }
 
         const transactions = await response.json();
+        residentTransactionsCache = Array.isArray(transactions) ? transactions : [];
+        residentTransactionsCacheAt = Date.now();
+        renderResidentTransactions(residentTransactionsCache, container);
+    } catch (error) {
+        console.error("Fetch Transactions Error:", error);
+        container.textContent = `Failed to load transactions: ${error.message}`;
+    } finally { residentTransactionsPromise = null; } })();
+    return residentTransactionsPromise;
+}
 
-        container.innerHTML = "";
-
-        if (!Array.isArray(transactions) || transactions.length === 0) {
+function renderResidentTransactions(transactions, container = document.getElementById("transactionListContainer")) {
+    if (!container) return;
+    container.innerHTML = "";
+    if (!Array.isArray(transactions) || transactions.length === 0) {
             container.innerHTML = `
                 <p style="text-align:center;color:#666;padding:20px;font-style:italic;">
-                    No active transactions found.
+                    No transactions found yet.
                 </p>
             `;
 
@@ -994,19 +1014,13 @@ async function fetchUserTransactions() {
                 }
             });
 
-            actions.append(viewButton, cancelButton);
+            actions.appendChild(viewButton);
+            if (status.trim().toLowerCase() === "pending") actions.appendChild(cancelButton);
 
             card.append(header, details, actions);
 
             container.appendChild(card);
         });
-
-    } catch (error) {
-        console.error("Fetch Transactions Error:", error);
-
-        container.textContent =
-            `Failed to load transactions: ${error.message}`;
-    }
 }
 
 /* =========================================================
@@ -1033,9 +1047,10 @@ async function cancelTransaction(transactionId) {
             );
         }
 
+        residentTransactionsCache = null;
         alert("Transaction request cancelled successfully.");
 
-        await fetchUserTransactions();
+        await fetchUserTransactions(true);
 
     } catch (error) {
         console.error("Cancel Transaction Error:", error);
@@ -1084,14 +1099,26 @@ function openTransactionDetail(
         isApproved: Boolean(isApproved)
     };
 
-    document
-        .getElementById("transactionListContainer")
-        ?.classList.add("hidden");
-
-    document
-        .getElementById("transactionDetailView")
-        ?.classList.remove("hidden");
-
+    const detail = document.getElementById("transactionDetailView");
+    if (detail) {
+        detail.classList.remove("hidden");
+        detail.classList.add("transaction-modal-open");
+        detail.setAttribute("role", "dialog");
+        detail.setAttribute("aria-modal", "true");
+        detail.setAttribute("aria-labelledby", "detTransTitle");
+        if (!document.getElementById("closeTransactionModal")) {
+            const close = document.createElement("button");
+            close.id = "closeTransactionModal";
+            close.type = "button";
+            close.className = "transaction-modal-close";
+            close.setAttribute("aria-label", "Close transaction details");
+            close.innerHTML = "&times;";
+            close.addEventListener("click", () => closeTransactionModal());
+            detail.prepend(close);
+        }
+        document.body.classList.add("transaction-modal-visible");
+    }
+    document.getElementById("transactionListContainer")?.classList.add("hidden");
     setText("detTransTitle", title);
     setText("detTransId", id);
 
@@ -1121,6 +1148,26 @@ function openTransactionDetail(
 
     renderSubmittedFiles();
 }
+
+function closeTransactionModal(refresh = false) {
+    const detail = document.getElementById("transactionDetailView");
+    detail?.classList.add("hidden");
+    detail?.classList.remove("transaction-modal-open");
+    detail?.removeAttribute("aria-modal");
+    document.body.classList.remove("transaction-modal-visible");
+    if (refresh) document.getElementById("transactionListContainer")?.classList.remove("hidden");
+}
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && document.body.classList.contains("transaction-modal-visible")) {
+        closeTransactionModal(true);
+    }
+});
+document.addEventListener("click", event => {
+    if (document.body.classList.contains("transaction-modal-visible") && event.target === document.body) {
+        closeTransactionModal(true);
+    }
+});
 
 function renderSubmittedFiles() {
     const container = document.getElementById("detSubmittedFilesList");
@@ -1273,14 +1320,7 @@ async function replaceSpecificFile(index) {
 }
 
 function backToTransactions() {
-    document
-        .getElementById("transactionListContainer")
-        ?.classList.remove("hidden");
-
-    document
-        .getElementById("transactionDetailView")
-        ?.classList.add("hidden");
-
+    closeTransactionModal(true);
     fetchUserTransactions();
 }
 
@@ -1413,8 +1453,8 @@ async function classifyComplaint() {
         }
 
         document.getElementById("complaintForm")?.reset();
-
-        await fetchResidentComplaintHistory();
+        residentComplaintHistoryCache = null;
+        await fetchResidentComplaintHistory(true);
 
     } catch (error) {
         console.error("Complaint Submission Error:", error);
@@ -1430,8 +1470,9 @@ async function classifyComplaint() {
    13. AI CHATBOT - BARANGAYEASE
    ========================================================= */
 
+let residentChatSending = false;
 async function sendMessage() {
-
+    if (residentChatSending) return;
     const input = document.getElementById("chatInput");
     const messages = document.getElementById("chatMessages");
 
@@ -1441,9 +1482,7 @@ async function sendMessage() {
     }
 
     const question = input.value.trim();
-
     if (!question) return;
-
     const token = resident?.token || getSavedToken();
 
     if (!token) {
@@ -1451,6 +1490,7 @@ async function sendMessage() {
         window.location.href = "login.html";
         return;
     }
+    residentChatSending = true;
 
     const userMessage = document.createElement("div");
     userMessage.className = "user-message";
@@ -1461,7 +1501,9 @@ async function sendMessage() {
 
     const pending = document.createElement("div");
     pending.className = "ai-message";
-    pending.textContent = "AI is thinking...";
+    pending.setAttribute("role", "status");
+    pending.setAttribute("aria-live", "polite");
+    pending.textContent = "AI is typing...";
 
     messages.appendChild(pending);
     messages.scrollTop = messages.scrollHeight;
@@ -1537,12 +1579,12 @@ async function sendMessage() {
 
     } catch (error) {
         console.error("AI Chat Error:", error);
-
         pending.textContent =
             "The AI assistant is temporarily unavailable. Please contact the barangay office.";
+    } finally {
+        residentChatSending = false;
+        messages.scrollTop = messages.scrollHeight;
     }
-
-    messages.scrollTop = messages.scrollHeight;
 }
 
 /* =========================================================
@@ -1811,8 +1853,9 @@ async function replaceComplaintAttachment(complaintId, fileId, input) {
             body: data
         });
         if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+        residentComplaintHistoryCache = null;
         alert("Complaint attachment replaced successfully.");
-        await fetchResidentComplaintHistory();
+        await fetchResidentComplaintHistory(true);
     } catch (error) {
         console.error("Complaint attachment replacement failed:", error);
         alert(`Unable to replace attachment: ${error.message}`);
@@ -1823,7 +1866,10 @@ async function replaceComplaintAttachment(complaintId, fileId, input) {
    15. COMPLAINT HISTORY
    ========================================================= */
 
-async function fetchResidentComplaintHistory() {
+let residentComplaintHistoryCache = null;
+let residentComplaintHistoryCacheAt = 0;
+let residentComplaintHistoryPromise = null;
+async function fetchResidentComplaintHistory(forceRefresh = false) {
     const container =
         document.getElementById("complaintHistoryList");
 
@@ -1835,9 +1881,13 @@ async function fetchResidentComplaintHistory() {
         return;
     }
 
+    if (!forceRefresh && Array.isArray(residentComplaintHistoryCache) && Date.now() - residentComplaintHistoryCacheAt < RESIDENT_LIST_CACHE_MS) {
+        renderResidentComplaintHistory(residentComplaintHistoryCache, container);
+        return;
+    }
+    if (residentComplaintHistoryPromise) return residentComplaintHistoryPromise;
     container.textContent = "Loading complaint history...";
-
-    try {
+    residentComplaintHistoryPromise = (async () => { try {
         const response = await fetch(
             `${API_BASE_URL}/api/complaints/resident/${encodeURIComponent(currentResidentId)}`,
             {
@@ -1852,10 +1902,20 @@ async function fetchResidentComplaintHistory() {
         }
 
         const rows = await response.json();
+        residentComplaintHistoryCache = Array.isArray(rows) ? rows : [];
+        residentComplaintHistoryCacheAt = Date.now();
+        renderResidentComplaintHistory(residentComplaintHistoryCache, container);
+    } catch (error) {
+        console.error("Complaint History Error:", error);
+        container.textContent = `Unable to load complaint history: ${error.message}`;
+    } finally { residentComplaintHistoryPromise = null; } })();
+    return residentComplaintHistoryPromise;
+}
 
-        container.innerHTML = "";
-
-        if (!Array.isArray(rows) || rows.length === 0) {
+function renderResidentComplaintHistory(rows, container = document.getElementById("complaintHistoryList")) {
+    if (!container) return;
+    container.innerHTML = "";
+    if (!Array.isArray(rows) || rows.length === 0) {
             container.textContent =
                 "You have not submitted any complaints yet.";
 
@@ -1929,13 +1989,6 @@ async function fetchResidentComplaintHistory() {
 
             container.appendChild(card);
         });
-
-    } catch (error) {
-        console.error("Complaint History Error:", error);
-
-        container.textContent =
-            `Unable to load complaint history: ${error.message}`;
-    }
 }
 
 /* =========================================================

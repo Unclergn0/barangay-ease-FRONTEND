@@ -761,14 +761,25 @@ function showTableError(table, columns, error) {
   console.error("Admin dashboard data error:", error);
   table.innerHTML = `<tr><td colspan="${columns}" class="empty-row">Unable to load data. Check that the backend is running and the API endpoint is available.</td></tr>`;
 }
+let adminNavigationTimer = null;
+let adminNavigationTarget = null;
 function showSection(sectionId, element) {
-  document.querySelectorAll(".content-section").forEach(s => s.classList.add("hidden"));
-  const section = $(sectionId); if (section) section.classList.remove("hidden");
+  const section = $(sectionId);
+  if (!section) return;
+  if (adminNavigationTarget === sectionId && !section.classList.contains("hidden")) return;
+  adminNavigationTarget = sectionId;
+  if (adminNavigationTimer) clearTimeout(adminNavigationTimer);
   document.querySelectorAll(".sidebar-menu li").forEach(li => li.classList.remove("active"));
   if (element) element.classList.add("active");
   else document.querySelector(`.sidebar-menu li[onclick*="'${sectionId}'"]`)?.classList.add("active");
   localStorage.setItem("activeSection", sectionId);
   const dropdown = $("profileDropdown"); if (dropdown) dropdown.classList.add("hidden");
+  document.querySelector(".main-content")?.classList.add("section-loading");
+  adminNavigationTimer = setTimeout(() => {
+    document.querySelectorAll(".content-section").forEach(s => s.classList.add("hidden"));
+    section.classList.remove("hidden");
+    document.querySelector(".main-content")?.classList.remove("section-loading");
+  }, 100);
 }
 function toggleProfileDropdown() { $("profileDropdown")?.classList.toggle("hidden"); }
 function logout() {
