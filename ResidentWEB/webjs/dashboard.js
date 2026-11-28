@@ -1014,8 +1014,24 @@ function renderResidentTransactions(transactions, container = document.getElemen
                 }
             });
 
+            const normalizedStatus = status.trim().toLowerCase();
+
             actions.appendChild(viewButton);
-            if (status.trim().toLowerCase() === "pending") actions.appendChild(cancelButton);
+            if (normalizedStatus === "pending") {
+                actions.appendChild(cancelButton);
+            }
+
+            if (normalizedStatus === "completed") {
+                const requestAgainButton = document.createElement("button");
+                requestAgainButton.type = "button";
+                requestAgainButton.className = "btn-sm-action";
+                requestAgainButton.innerHTML =
+                    '<i class="fas fa-redo-alt"></i> Request Again';
+                requestAgainButton.addEventListener("click", () => {
+                    startRepeatServiceRequest(title);
+                });
+                actions.appendChild(requestAgainButton);
+            }
 
             card.append(header, details, actions);
 
@@ -1024,7 +1040,40 @@ function renderResidentTransactions(transactions, container = document.getElemen
 }
 
 /* =========================================================
-   10. CANCEL TRANSACTION
+   10. REPEAT A COMPLETED SERVICE REQUEST
+   ========================================================= */
+
+function startRepeatServiceRequest(serviceTitle) {
+    const form = document.getElementById("serviceRequestForm");
+    const serviceType = document.getElementById("serviceType");
+    const purpose = document.getElementById("servicePurpose");
+    const filesInput = document.getElementById("serviceFiles");
+    const pickupDate = document.getElementById("servicePickupDate");
+    const pickupTime = document.getElementById("servicePickupTime");
+
+    if (!form || !serviceType || !purpose || !filesInput) {
+        alert("The service request form is unavailable. Please reload the page and try again.");
+        return;
+    }
+
+    form.reset();
+    serviceType.value = serviceTitle;
+    purpose.value = "";
+    filesInput.value = "";
+    if (pickupDate) pickupDate.value = "";
+    if (pickupTime) pickupTime.value = "";
+
+    updateServiceRequirements();
+    showSection("serviceSection");
+
+    window.setTimeout(() => {
+        purpose.focus();
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+}
+
+/* =========================================================
+   11. CANCEL TRANSACTION
    ========================================================= */
 
 async function cancelTransaction(transactionId) {
@@ -1620,7 +1669,10 @@ function updateResidentNotificationBadge(items) {
     if (markAllButton) markAllButton.disabled = unread === 0;
 }
 
-async function fetchUserNotifications() {
+let residentNotificationTimer = null;
+let residentNotificationFetchInProgress = false;
+
+async function fetchUserNotifications(silent = false) {
     const container = document.getElementById("notificationList");
     if (!container) return;
 
@@ -1629,7 +1681,12 @@ async function fetchUserNotifications() {
         return;
     }
 
-    container.innerHTML = '<div class="resident-notification-empty"><i class="fas fa-spinner fa-spin"></i><span>Loading notifications...</span></div>';
+    if (residentNotificationFetchInProgress) return;
+    residentNotificationFetchInProgress = true;
+
+    if (!silent && !residentNotificationsCache.length) {
+        container.innerHTML = '<div class="resident-notification-empty"><i class="fas fa-spinner fa-spin"></i><span>Loading notifications...</span></div>';
+    }
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/notifications`, {
@@ -1700,12 +1757,28 @@ async function fetchUserNotifications() {
         });
     } catch (error) {
         console.error("Fetch Notifications Error:", error);
-        container.innerHTML = "";
-        const message = document.createElement("div");
-        message.className = "resident-notification-error";
-        message.textContent = `Unable to load notifications: ${error.message}`;
-        container.appendChild(message);
+        if (!silent || !residentNotificationsCache.length) {
+            container.innerHTML = "";
+            const message = document.createElement("div");
+            message.className = "resident-notification-error";
+            message.textContent = `Unable to load notifications: ${error.message}`;
+            container.appendChild(message);
+        }
+    } finally {
+        residentNotificationFetchInProgress = false;
     }
+}
+
+function startResidentNotificationPolling() {
+    if (residentNotificationTimer) clearInterval(residentNotificationTimer);
+
+    residentNotificationTimer = setInterval(() => {
+        if (!document.hidden) fetchUserNotifications(true);
+    }, 5000);
+
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) fetchUserNotifications(true);
+    });
 }
 
 async function markNotificationRead(id) {
@@ -2203,6 +2276,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetchUserTransactions();
     fetchUserNotifications();
+    startResidentNotificationPolling();
 
     const wrapper =
         document.querySelector(".topbar-profile-wrapper");

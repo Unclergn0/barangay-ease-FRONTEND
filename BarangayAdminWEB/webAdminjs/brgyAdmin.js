@@ -905,8 +905,13 @@ function showEmergencyToast(n, count) {
 
 function startNotificationPolling() {
   clearInterval(notificationTimer);
-  notificationTimer = setInterval(() => { if (!document.hidden) loadAdminNotifications(); }, 30000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAdminNotifications(); });
+  notificationTimer = setInterval(() => {
+    if (!document.hidden) loadAdminNotifications();
+  }, 5000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadAdminNotifications();
+  });
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
     if (!$("adminNotificationDetailModal")?.classList.contains("hidden")) closeAdminNotificationDetail();
