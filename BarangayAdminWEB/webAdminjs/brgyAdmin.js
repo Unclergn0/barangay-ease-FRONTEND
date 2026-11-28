@@ -235,8 +235,23 @@ async function changeRequestStatus(id, status, presetNote) {
   }
   try {
     const noteParam = note ? `&note=${encodeURIComponent(note)}` : "";
-    await api(`/api/services/admin/status/${id}?status=${encodeURIComponent(status)}${noteParam}`, { method: "PUT" });
-    await refreshDashboard(); alert(`Request #${id} updated to ${status}. The resident was notified.`);
+    const updated = await api(`/api/services/admin/status/${id}?status=${encodeURIComponent(status)}${noteParam}`, { method: "PUT" });
+
+    // Update the existing row and cached record; no dashboard-wide or table reload.
+    const request = requestsCache.find(r => Number(idOf(r)) === Number(id));
+    if (request) request.status = updated?.status || status;
+    const row = Array.from($("requestsTable")?.rows || []).find(r =>
+      String(r.cells[0]?.textContent || "").trim() === `#${id}`
+    );
+    if (row) {
+      if (row.cells[6]) row.cells[6].textContent = updated?.status || status;
+      if (row.cells[7]) row.cells[7].innerHTML = requestActionButtons(id, updated?.status || status);
+    }
+    setText("dashPendingRequests", requestsCache.filter(r =>
+      normalize(r.status || "Pending") === "pending"
+    ).length);
+    renderAnalytics();
+    alert(`Request #${id} updated to ${status}. The resident was notified.`);
   } catch (e) { console.error(e); alert(`Unable to update request: ${e.message}`); }
 }
 async function requestMoreDocuments(id) {
@@ -471,6 +486,39 @@ ${note}`);
 }
 
 
+function updateComplaintCacheAndRow(id, changes) {
+  const complaint = complaintsCache.find(c =>
+    Number(c.complaintId ?? c.id) === Number(id)
+  );
+  if (complaint) Object.assign(complaint, changes);
+
+  const isFinal = ["resolved", "dismissed", "closed", "completed"]
+    .includes(normalize(changes.status ?? complaint?.status));
+
+  ["complaintsTable", "aiComplaintsTable"].forEach(tableId => {
+    const table = $(tableId);
+    if (!table) return;
+
+    const row = Array.from(table.rows).find(r =>
+      String(r.cells[0]?.textContent || "").trim() === `#${id}`
+    );
+    if (!row) return;
+
+    const isAiTable = tableId === "aiComplaintsTable";
+    const statusCell = row.cells[isAiTable ? 7 : 6];
+    const actionsCell = row.cells[isAiTable ? 8 : 7];
+    if (statusCell && changes.status) statusCell.textContent = changes.status;
+    if (isAiTable && changes.aiReviewStatus && row.cells[6]) {
+      row.cells[6].textContent = changes.aiReviewStatus;
+    }
+    if (isFinal && actionsCell) {
+      actionsCell.querySelectorAll("button").forEach(button => {
+        button.disabled = true;
+      });
+    }
+  });
+}
+
 async function reviewAiComplaint(id, action) {
   if (!Number.isFinite(Number(id))) return;
 
@@ -492,7 +540,7 @@ async function reviewAiComplaint(id, action) {
   }
 
   try {
-    await api(`/api/complaints/admin/ai-review/${id}`, {
+    const updated = await api(`/api/complaints/admin/ai-review/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json"
@@ -500,7 +548,10 @@ async function reviewAiComplaint(id, action) {
       body: JSON.stringify(body)
     });
 
-    await loadComplaints();
+    updateComplaintCacheAndRow(id, {
+      status: updated?.status || (action === "ACCEPT" ? "Resolved" : "Dismissed"),
+      aiReviewStatus: updated?.aiReviewStatus || (action === "ACCEPT" ? "ACCEPTED" : "REJECTED")
+    });
     renderAnalytics();
 
     alert(
@@ -516,8 +567,10 @@ async function reviewAiComplaint(id, action) {
 async function changeComplaintStatus(id, status) {
   if (!Number.isFinite(id) || !confirm(`Change complaint #${id} status to ${status}?`)) return;
   try {
-    await api(`/api/complaints/admin/status/${id}?status=${encodeURIComponent(status)}`, { method: "PUT" });
-    await loadComplaints(); renderAnalytics(); alert(`Complaint #${id} updated to ${status}.`);
+    const updated = await api(`/api/complaints/admin/status/${id}?status=${encodeURIComponent(status)}`, { method: "PUT" });
+    updateComplaintCacheAndRow(id, { status: updated?.status || status });
+    renderAnalytics();
+    alert(`Complaint #${id} updated to ${status}.`);
   } catch (e) { console.error(e); alert(`Unable to update complaint: ${e.message}`); }
 }
 async function loadDashboardFeedback() {
