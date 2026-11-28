@@ -332,22 +332,24 @@ async function loadComplaints() {
           const isFinal = status === "resolved" || status === "dismissed";
           const disabled = isFinal ? "disabled" : "";
 
-          const actions = `
-            <button class="admin-action" ${disabled}
-              onclick="changeComplaintStatus(${id},'Investigating')">
-              Investigate
-            </button>
+          const actions = isFinal
+            ? '<span class="section-note">No further action</span>'
+            : `
+              <button class="admin-action"
+                onclick="changeComplaintStatus(${id},'Investigating')">
+                Investigate
+              </button>
 
-            <button class="admin-action approve" ${disabled}
-              onclick="reviewAiComplaint(${id},'ACCEPT')">
-              Resolve
-            </button>
+              <button class="admin-action approve"
+                onclick="reviewAiComplaint(${id},'ACCEPT')">
+                Resolve
+              </button>
 
-            <button class="admin-action reject" ${disabled}
-              onclick="reviewAiComplaint(${id},'REJECT')">
-              Dismiss
-            </button>
-          `;
+              <button class="admin-action reject"
+                onclick="reviewAiComplaint(${id},'REJECT')">
+                Dismiss
+              </button>
+            `;
 
           return `
             <tr>
@@ -395,22 +397,24 @@ async function loadComplaints() {
           const isFinal = status === "resolved" || status === "dismissed";
           const disabled = isFinal ? "disabled" : "";
 
-          const actions = `
-            <button class="admin-action" ${disabled}
-              onclick="changeComplaintStatus(${id},'Investigating')">
-              Investigate
-            </button>
+          const actions = isFinal
+            ? '<span class="section-note">No further action</span>'
+            : `
+              <button class="admin-action"
+                onclick="changeComplaintStatus(${id},'Investigating')">
+                Investigate
+              </button>
 
-            <button class="admin-action approve" ${disabled}
-              onclick="changeComplaintStatus(${id},'Resolved')">
-              Resolve
-            </button>
+              <button class="admin-action approve"
+                onclick="changeComplaintStatus(${id},'Resolved')">
+                Resolve
+              </button>
 
-            <button class="admin-action reject" ${disabled}
-              onclick="changeComplaintStatus(${id},'Dismissed')">
-              Dismiss
-            </button>
-          `;
+              <button class="admin-action reject"
+                onclick="changeComplaintStatus(${id},'Dismissed')">
+                Dismiss
+              </button>
+            `;
 
           return `
             <tr>
@@ -511,10 +515,10 @@ function updateComplaintCacheAndRow(id, changes) {
     if (isAiTable && changes.aiReviewStatus && row.cells[6]) {
       row.cells[6].textContent = changes.aiReviewStatus;
     }
+    // Final decisions remove all action buttons and show a clear terminal state.
+    // The complaint row and database record remain visible for history/audit.
     if (isFinal && actionsCell) {
-      actionsCell.querySelectorAll("button").forEach(button => {
-        button.disabled = true;
-      });
+      actionsCell.innerHTML = '<span class="section-note">No further action</span>';
     }
   });
 }
