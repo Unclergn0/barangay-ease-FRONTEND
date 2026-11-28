@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const form = document.getElementById("registerForm");
@@ -9,16 +10,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const registerBtn = form.querySelector('[type="submit"]');
 
-    // DITO ANG PAGBABAGO: Dynamic hostname detection para sa Netlify at Localhost
-    const API_BASE = (window.BE_API_BASE_URL || 'https://barangay-ease-backend.onrender.com/api').replace(/\/+$/, '');
+    // =====================================
+    // API CONFIGURATION
+    // =====================================
+
+    const API_BASE = (
+        window.BE_API_BASE_URL ||
+        "https://barangay-ease-backend.onrender.com/api"
+    ).replace(/\/+$/, "");
 
     const API_URL = `${API_BASE}/residents/register`;
 
-    // Get input value
+    // =====================================
+    // GET INPUT VALUE
+    // =====================================
+
     const getValue = (id) => {
         const element = document.getElementById(id);
         return element ? element.value.trim() : "";
     };
+
+    // =====================================
+    // MOBILE NUMBER INPUT
+    // Numbers only, maximum 11 digits
+    // =====================================
+
+    const contactNumberInput = document.getElementById("contactNumber");
+
+    if (contactNumberInput) {
+
+        contactNumberInput.addEventListener("input", () => {
+
+            contactNumberInput.value = contactNumberInput.value
+                .replace(/\D/g, "")
+                .slice(0, 11);
+
+        });
+
+    }
 
     // =====================================
     // TERMS AND CONDITIONS MODAL
@@ -29,37 +58,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const termsModal = document.getElementById("termsModal");
 
     function setTermsModalOpen(isOpen) {
+
         if (!termsModal) return;
 
         termsModal.style.display = isOpen ? "flex" : "none";
         termsModal.classList.toggle("show", isOpen);
         termsModal.classList.toggle("active", isOpen);
+
     }
 
     if (openTerms && termsModal) {
+
         openTerms.addEventListener("click", (event) => {
+
             event.preventDefault();
             event.stopPropagation();
+
             setTermsModalOpen(true);
+
         });
+
     }
 
     if (closeTerms && termsModal) {
+
         closeTerms.addEventListener("click", () => {
             setTermsModalOpen(false);
         });
+
     }
 
     window.addEventListener("click", (event) => {
+
         if (event.target === termsModal) {
             setTermsModalOpen(false);
         }
+
     });
 
     document.addEventListener("keydown", (event) => {
+
         if (event.key === "Escape" && termsModal) {
             setTermsModalOpen(false);
         }
+
     });
 
     // =====================================
@@ -99,6 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
             icon.setAttribute("title", "Show password");
 
         }
+
     }
 
     toggleIcons.forEach((icon) => {
@@ -111,8 +154,10 @@ document.addEventListener("DOMContentLoaded", () => {
         icon.addEventListener("keydown", (event) => {
 
             if (event.key === "Enter" || event.key === " ") {
+
                 event.preventDefault();
                 togglePasswordVisibility(icon);
+
             }
 
         });
@@ -127,6 +172,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updatePasswordRequirements() {
 
+        if (!passwordInput) return;
+
         const password = passwordInput.value;
 
         const hasLength = password.length >= 8;
@@ -136,6 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateRequirement("lengthCheck", hasLength);
         updateRequirement("letterCheck", hasLetter);
         updateRequirement("numberCheck", hasNumber);
+
     }
 
     function updateRequirement(elementId, isValid) {
@@ -163,13 +211,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
         }
+
     }
 
     if (passwordInput) {
+
         passwordInput.addEventListener(
             "input",
             updatePasswordRequirements
         );
+
     }
 
     // =====================================
@@ -179,6 +230,10 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (event) => {
 
         event.preventDefault();
+
+        // =====================================
+        // GET FORM VALUES
+        // =====================================
 
         const firstName = getValue("firstName");
         const middleName = getValue("middleName");
@@ -193,7 +248,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const terms = document.getElementById("terms");
 
-        // Required fields
+        // =====================================
+        // REQUIRED FIELDS VALIDATION
+        // =====================================
+
         if (
             !firstName ||
             !lastName ||
@@ -205,47 +263,107 @@ document.addEventListener("DOMContentLoaded", () => {
             !password ||
             !confirmPassword
         ) {
+
             alert("Please complete all required fields.");
             return;
+
         }
 
-        // Password validation
+        // =====================================
+        // MOBILE NUMBER VALIDATION
+        // Must start with 09 and contain 11 digits
+        // =====================================
+
+        if (!/^09\d{9}$/.test(contactNumber)) {
+
+            alert(
+                "Mobile number must start with 09 and contain exactly 11 digits."
+            );
+
+            if (contactNumberInput) {
+                contactNumberInput.focus();
+            }
+
+            return;
+
+        }
+
+        // =====================================
+        // PASSWORD VALIDATION
+        // =====================================
+
         if (
             password.length < 8 ||
             !/[A-Za-z]/.test(password) ||
             !/[0-9]/.test(password)
         ) {
+
             alert(
                 "Password must be at least 8 characters and contain a letter and a number."
             );
-            passwordInput.focus();
+
+            if (passwordInput) {
+                passwordInput.focus();
+            }
+
             return;
+
         }
 
-        // Security PIN validation
+        // =====================================
+        // SECURITY PIN VALIDATION (6 DIGITS ONLY)
+        // =====================================
+
         if (!/^\d{6}$/.test(securityPin)) {
+
             alert("Security PIN must contain exactly 6 digits.");
 
-            document.getElementById("securityPin").focus();
+            const securityPinInput = document.getElementById("securityPin");
+
+            if (securityPinInput) {
+                securityPinInput.focus();
+            }
+
             return;
+
         }
 
-        // Confirm password validation
+        // =====================================
+        // CONFIRM PASSWORD VALIDATION
+        // =====================================
+
         if (password !== confirmPassword) {
+
             alert("Passwords do not match.");
 
-            document.getElementById("confirmPassword").focus();
+            const confirmPasswordInput =
+                document.getElementById("confirmPassword");
+
+            if (confirmPasswordInput) {
+                confirmPasswordInput.focus();
+            }
+
             return;
+
         }
 
-        // Terms validation
+        // =====================================
+        // TERMS AND CONDITIONS VALIDATION
+        // =====================================
+
         if (!terms || !terms.checked) {
+
             alert("Please accept the Terms and Conditions.");
             return;
+
         }
 
-        // Resident registration payload
+        // =====================================
+        // RESIDENT REGISTRATION PAYLOAD
+        // =====================================
+
         const payload = {
+
             firstName,
             middleName,
             lastName,
@@ -255,13 +373,20 @@ document.addEventListener("DOMContentLoaded", () => {
             email,
             securityPin,
             password
+
         };
+
+        // =====================================
+        // SEND REGISTRATION REQUEST
+        // =====================================
 
         try {
 
             if (registerBtn) {
+
                 registerBtn.disabled = true;
                 registerBtn.textContent = "Registering...";
+
             }
 
             const response = await fetch(API_URL, {
@@ -279,10 +404,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (!response.ok) {
+
                 throw new Error(
                     data.message || "Registration failed."
                 );
+
             }
+
+            // =====================================
+            // REGISTRATION SUCCESS
+            // =====================================
 
             alert(data.message || "Registration successful!");
 
@@ -294,6 +425,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
 
+            // =====================================
+            // REGISTRATION ERROR
+            // =====================================
+
             console.error("Resident registration error:", error);
 
             alert(
@@ -302,9 +437,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } finally {
 
+            // =====================================
+            // RESTORE REGISTER BUTTON
+            // =====================================
+
             if (registerBtn) {
+
                 registerBtn.disabled = false;
                 registerBtn.textContent = "Register Account";
+
             }
 
         }
